@@ -3,6 +3,7 @@ package com.hylamobile.voorhees.server.spring.webmvc
 import com.hylamobile.voorhees.jsonrpc.*
 import com.hylamobile.voorhees.server.annotations.DontExpose
 import com.hylamobile.voorhees.server.annotations.JsonRpcService
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.Ordered
 import org.springframework.http.InvalidMediaTypeException
 import org.springframework.http.MediaType
@@ -11,6 +12,9 @@ import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 
 class JsonRpcHandlerMapping : AbstractHandlerMapping() {
+
+    @Value("\${spring.voorhees.server.handler-mapping.order:0x80000000}")
+    private var _order: Int = Ordered.HIGHEST_PRECEDENCE
 
     private lateinit var handlers: Map<String, Map<String, List<JsonRpcMethodHandler>>>
 
@@ -32,9 +36,7 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
             .toMap()
     }
 
-    override fun isContextRequired(): Boolean = true
-
-    override fun getOrder(): Int = Ordered.HIGHEST_PRECEDENCE
+    override fun getOrder(): Int = _order
 
     override fun getHandlerInternal(httpRequest: HttpServletRequest): Any? {
         fun contentType() =
