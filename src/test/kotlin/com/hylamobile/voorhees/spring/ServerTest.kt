@@ -1,7 +1,7 @@
 package com.hylamobile.voorhees.spring
 
 import com.hylamobile.voorhees.jsonrpc.InternalErrorException
-import com.hylamobile.voorhees.jsonrpc.JsonRpcException
+import com.hylamobile.voorhees.server.annotations.DontExpose
 import com.hylamobile.voorhees.server.annotations.JsonRpcService
 import com.hylamobile.voorhees.server.annotations.Param
 
@@ -24,6 +24,9 @@ class TestService {
     fun birthday(person: Person) = person.copy(age = person.age + 1)
 
     fun birthdays(people: List<Person>) = people.map { it.copy(age = it.age + 1) }
+
+    @DontExpose
+    fun unexposed(): String = "the-password"
 }
 
 data class Person(val name: String, val age: Int)

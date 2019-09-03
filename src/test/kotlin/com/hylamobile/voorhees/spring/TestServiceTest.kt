@@ -265,4 +265,21 @@ class TestServiceTest {
             .andExpect(jsonPath("id").value(`is`(1)))
             .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
     }
+
+    @Test
+    fun testDontExpose() {
+        val request = Request("unexposed", null, NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(Json.serializeRequest(request)))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("result").value(nullValue()))
+            .andExpect(jsonPath("error.code").value(`is`(-32601)))
+            .andExpect(jsonPath("error.message").value(`is`("Method not found")))
+            .andExpect(jsonPath("error.data").value(`is`("Method unexposed not found")))
+            .andExpect(jsonPath("id").value(`is`(1)))
+            .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
+    }
 }
