@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.hylamobile.voorhees.server.spring.config.VoorheesConfig
