@@ -16,7 +16,7 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
 
     @PostConstruct
     fun init() {
-        handlers = applicationContext
+        handlers = (applicationContext ?: throw IllegalStateException("Should not be thrown"))
             .getBeansWithAnnotation(JsonRpcService::class.java)
             .values
             .flatMap { bean ->
@@ -24,13 +24,15 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
                 val handlerInfos = clazz.methods
                     .filter { it.getAnnotation(DontExpose::class.java) == null }
                     .groupBy { it.name }
-                    .mapValues { it.value.map { JsonRpcMethodHandler(bean, it) }}
+                    .mapValues { it.value.map { m -> JsonRpcMethodHandler(bean, m) }}
 
                 val jsonRpcAnno = clazz.getAnnotation(JsonRpcService::class.java)
                 jsonRpcAnno.locations.map { it to handlerInfos }
             }
             .toMap()
     }
+
+    override fun isContextRequired(): Boolean = true
 
     override fun getOrder(): Int = Ordered.HIGHEST_PRECEDENCE
 
@@ -72,7 +74,7 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
         }
     }
 
-    private fun pickBest(handlers: List<JsonRpcMethodHandler>, jsonRequest: Request) = handlers[0]
+    private fun pickBest(handlers: List<JsonRpcMethodHandler>, @Suppress("UNUSED_PARAMETER") jsonRequest: Request) = handlers[0]
 
     private val HttpServletRequest.realPath
         get() = pathInfo ?: requestURI.substring(contextPath.length)

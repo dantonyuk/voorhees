@@ -3,6 +3,7 @@ package com.hylamobile.voorhees.spring
 import com.fasterxml.jackson.databind.node.TextNode
 import com.hylamobile.voorhees.client.JsonRpcClient
 import com.hylamobile.voorhees.client.ServerConfig
+import com.hylamobile.voorhees.client.annotation.JsonRpcService
 import com.hylamobile.voorhees.client.annotation.Param
 import com.hylamobile.voorhees.jsonrpc.ErrorCode
 import com.hylamobile.voorhees.jsonrpc.JsonRpcException
@@ -18,6 +19,7 @@ import org.springframework.test.context.junit4.SpringRunner
 class WebServiceTest {
 
     companion object {
+        @JsonRpcService(location = "/test")
         interface RemoteService {
             fun plus(l: Int, r: Int): Int
 
@@ -32,18 +34,19 @@ class WebServiceTest {
     @LocalServerPort
     var localServerPort: Int = 0
 
+    private val client
+        get() = JsonRpcClient(ServerConfig("http://localhost:$localServerPort"))
+
     @Test
     fun testRemote() {
-        val client = JsonRpcClient(ServerConfig("http://localhost:${localServerPort}"))
-        val testService = client.getService("/test", RemoteService::class.java)
+        val testService = client.getService(RemoteService::class.java)
         val result = testService.plus(3, 4)
         assertEquals(7, result)
     }
 
     @Test
     fun testDefault() {
-        val client = JsonRpcClient(ServerConfig("http://localhost:${localServerPort}"))
-        val testService = client.getService("/test", RemoteService::class.java)
+        val testService = client.getService(RemoteService::class.java)
         val result = testService.replicate("test")
         assertEquals("testtest", result)
     }
@@ -51,8 +54,7 @@ class WebServiceTest {
     @Test
     fun testJsonError() {
         try {
-            val client = JsonRpcClient(ServerConfig("http://localhost:${localServerPort}"))
-            val testService = client.getService("/test", RemoteService::class.java)
+            val testService = client.getService(RemoteService::class.java)
             testService.breakALeg()
         } catch (e: JsonRpcException) {
             assertEquals(ErrorCode.INTERNAL_ERROR.code, e.error.code)
@@ -64,8 +66,7 @@ class WebServiceTest {
     @Test
     fun testException() {
         try {
-            val client = JsonRpcClient(ServerConfig("http://localhost:${localServerPort}"))
-            val testService = client.getService("/test", RemoteService::class.java)
+            val testService = client.getService(RemoteService::class.java)
             testService.breakAnArm()
         } catch (e: JsonRpcException) {
             assertEquals(ErrorCode.INTERNAL_ERROR.code, e.error.code)

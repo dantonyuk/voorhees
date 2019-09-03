@@ -5,6 +5,7 @@ import com.github.kittinunf.fuel.core.FuelManager
 import com.github.kittinunf.fuel.core.extensions.jsonBody
 import com.github.kittinunf.fuel.core.interceptors.LogRequestAsCurlInterceptor
 import com.github.kittinunf.fuel.httpPost
+import com.hylamobile.voorhees.client.annotation.JsonRpcService
 import com.hylamobile.voorhees.client.annotation.Param
 import com.hylamobile.voorhees.jsonrpc.*
 import java.lang.reflect.InvocationHandler
@@ -15,6 +16,15 @@ import java.nio.charset.Charset
 data class ServerConfig(val url: String)
 
 class JsonRpcClient(private val serverConfig: ServerConfig) {
+
+    fun <T> getService(type: Class<T>): T {
+        val anno = type.getAnnotation(JsonRpcService::class.java)
+
+        requireNotNull(anno) { "Class ${type.name} should be annotated with JsonRpcService annotation" }
+        check(anno.location.isNotEmpty()) { "@JsonRpcService on ${type.name} should have location set" }
+
+        return getService(anno.location, type)
+    }
 
     @Suppress("UNCHECKED_CAST")
     fun <T> getService(location: String, type: Class<T>): T =
