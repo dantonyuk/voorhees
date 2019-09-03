@@ -2,7 +2,6 @@ package com.hylamobile.voorhees.jsonrpc
 
 import com.fasterxml.jackson.databind.node.IntNode
 import org.junit.Assert.*
-import org.junit.Ignore
 import org.junit.Test
 import java.io.StringReader
 import java.io.StringWriter
@@ -153,31 +152,6 @@ class JsonRpcRequestTest {
         assertEquals(ByNameParams::class.java, request.params?.javaClass)
         assertEquals(mapOf("first" to IntNode(1), "second" to IntNode(2)), (request.params as ByNameParams).params)
     }
-
-//    @Test fun `null params should be serialized as null`() {
-//        val writer = StringWriter()
-//        Json.writeRequest(Request("eval", id = NumberId(42), params = null), writer)
-//
-//        assertNull(request.params)
-//    }
-//
-//    @Test fun `array params should be parsed as by-position params`() {
-//        val request = Json.readRequest(StringReader(
-//            "{\"method\":\"eval\",\"params\":[1,2,3],\"id\":null,\"jsonrpc\":\"2.0\"}"))
-//
-//        assertNotNull(request.params)
-//        assertEquals(ByPositionParams::class.java, request.params?.javaClass)
-//        assertEquals(listOf(IntNode(1), IntNode(2), IntNode(3)), (request.params as ByPositionParams).params)
-//    }
-//
-//    @Test fun `object params should be parsed as by-name params`() {
-//        val request = Json.readRequest(StringReader(
-//            "{\"method\":\"eval\",\"params\":{\"first\": 1, \"second\": 2},\"id\":null,\"jsonrpc\":\"2.0\"}"))
-//
-//        assertNotNull(request.params)
-//        assertEquals(ByNameParams::class.java, request.params?.javaClass)
-//        assertEquals(mapOf("first" to IntNode(1), "second" to IntNode(2)), (request.params as ByNameParams).params)
-//    }
 
     private inline fun rethrowCause(block: () -> Unit) {
         try {
