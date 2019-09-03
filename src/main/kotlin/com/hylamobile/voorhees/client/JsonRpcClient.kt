@@ -16,6 +16,7 @@ data class ServerConfig(val url: String)
 
 class JsonRpcClient(private val serverConfig: ServerConfig) {
 
+    @Suppress("UNCHECKED_CAST")
     fun <T> getService(location: String, type: Class<T>): T =
         Proxy.newProxyInstance(type.classLoader,
             arrayOf(type), ServiceProxy(serverConfig.url + location)) as T
@@ -44,7 +45,7 @@ class JsonRpcClient(private val serverConfig: ServerConfig) {
                     val repr = it.toString(Charset.forName("UTF-8"))
                     val json = Json.parseTree(repr)
                     val resp = Json.parse<Response<*>>(repr, Response::class.java)
-                    resp.error?.let { throw CustomJsonRpcException(it) }
+                    resp.error?.let { ex -> throw CustomJsonRpcException(ex) }
                     val jsonResult = json?.get("result") ?: throw NullPointerException()
                     Json.parseNode(jsonResult, method.returnType)
                 }, {
