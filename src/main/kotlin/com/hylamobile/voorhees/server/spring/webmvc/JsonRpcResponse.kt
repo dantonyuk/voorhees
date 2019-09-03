@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletResponse
 class JsonRpcResponse(private val jsonResponse: Response<*>) {
 
     fun respondTo(httpResponse: HttpServletResponse) {
-        httpResponse.setStatus(200, "OK")
         httpResponse.contentType = MediaType.APPLICATION_JSON_UTF8_VALUE
         httpResponse.characterEncoding = "UTF-8"
         httpResponse.writer.use { Json.writeResponse(jsonResponse, it) }
