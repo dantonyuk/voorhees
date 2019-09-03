@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest
 
 class JsonRpcHandlerMapping : AbstractHandlerMapping() {
 
-    @Value("\${spring.voorhees.server.handler-mapping.order:0x80000000}")
+    @Value("\${spring.voorhees.server.handler-mapping.order:-2147483648}")
     private var _order: Int = Ordered.HIGHEST_PRECEDENCE
 
     private lateinit var handlers: Map<String, Map<String, List<JsonRpcMethodHandler>>>
