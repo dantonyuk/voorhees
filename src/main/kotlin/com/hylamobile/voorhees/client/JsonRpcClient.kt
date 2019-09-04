@@ -71,7 +71,7 @@ open class JsonRpcClient(private val serverConfig: ServerConfig) {
                     val resp = Json.parse<Response<*>>(repr, Response::class.java)
                     resp.error?.let { ex -> throw CustomJsonRpcException(ex) }
                     val jsonResult = json?.get("result") ?: throw NullPointerException()
-                    Json.parseNode(jsonResult, method.returnType)
+                    Json.parseNode(jsonResult, method.genericReturnType)
                 }, {
                     throw it
                 })

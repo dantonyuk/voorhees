@@ -30,6 +30,10 @@ class WebServiceTest {
             fun breakALeg(): String
 
             fun breakAnArm(): String
+
+            fun birthday(person: Person) = person.copy(age = person.age + 1)
+
+            fun birthdays(people: List<Person>) = people.map { it.copy(age = it.age + 1) }
         }
     }
 
@@ -82,5 +86,19 @@ class WebServiceTest {
             assertEquals(ErrorCode.INTERNAL_ERROR.message, e.error.message)
             assertEquals("An arm is broken", (e.error.data as TextNode).textValue())
         }
+    }
+
+    @Test
+    fun `POJO method should work`() {
+        val testService = client.getService(RemoteService::class.java)
+        val result = testService.birthday(Person("johnny", 20))
+        assertEquals(21, result.age)
+    }
+
+    @Test
+    fun `POJO collection method should work`() {
+        val testService = client.getService(RemoteService::class.java)
+        val result = testService.birthdays(listOf(Person("johnny", 20)))
+        assertEquals(21, result[0].age)
     }
 }
