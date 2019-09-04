@@ -14,19 +14,13 @@ import java.io.Writer
 import java.lang.reflect.Type
 import com.fasterxml.jackson.databind.ObjectMapper
 
-
-
 class JsonRpcIdSerializer : StdSerializer<Id<*>>(Id::class.java) {
 
     override fun serialize(value: Id<*>?, gen: JsonGenerator, provider: SerializerProvider?) {
-        if (value == null) {
-            gen.writeNull()
-        }
-        else {
-            when (value) {
-                is StringId -> gen.writeString(value.id)
-                is NumberId -> gen.writeNumber(value.id)
-            }
+        when (value) {
+            null -> gen.writeNull()
+            is StringId -> gen.writeString(value.id)
+            is NumberId -> gen.writeNumber(value.id)
         }
     }
 }
@@ -63,6 +57,10 @@ class VersionDeserializer : StdDeserializer<Version>(Version::class.java) {
             nodeVer2_0 -> Version.ver2_0
             else -> throw InvalidRequestException("Only version 2.0 is supported")
         }
+    }
+
+    override fun getNullValue(ctxt: DeserializationContext?): Version {
+        throw InvalidRequestException("Only version 2.0 is supported")
     }
 }
 
