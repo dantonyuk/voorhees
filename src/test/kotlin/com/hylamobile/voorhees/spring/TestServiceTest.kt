@@ -102,6 +102,51 @@ class TestServiceTest {
     }
 
     @Test
+    fun `call of default-parameters method with null parameters should succeed`() {
+        val request = Request("replicate", null, NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(Json.serializeRequest(request)))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("result").value(`is`("xaxa")))
+            .andExpect(jsonPath("error").value(nullValue()))
+            .andExpect(jsonPath("id").value(`is`(1)))
+            .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
+    }
+
+    @Test
+    fun `call of default-parameters method with empty positional parameters should succeed`() {
+        val request = Request("replicate", ByPositionParams(listOf()), NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(Json.serializeRequest(request)))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("result").value(`is`("xaxa")))
+            .andExpect(jsonPath("error").value(nullValue()))
+            .andExpect(jsonPath("id").value(`is`(1)))
+            .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
+    }
+
+    @Test
+    fun `call of default-parameters method with empty named parameters should succeed`() {
+        val request = Request("replicate", ByNameParams(mapOf()), NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(Json.serializeRequest(request)))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("result").value(`is`("xaxa")))
+            .andExpect(jsonPath("error").value(nullValue()))
+            .andExpect(jsonPath("id").value(`is`(1)))
+            .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
+    }
+
+    @Test
     fun `call of default-parameters method with short parameter list should succeed`() {
         val request = Request("replicate", ByPositionParams(listOf(TextNode("test"))), NumberId(1))
         mockMvc.perform(MockMvcRequestBuilders.post("/test")

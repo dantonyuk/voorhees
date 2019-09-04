@@ -41,7 +41,7 @@ class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : 
         paramByName.values.filter { it.defaultValue == null }.map { it.name }
 
     fun compatibleWith(requestParams: Params?): Boolean {
-        fun checkNull() = method.parameterCount == 0
+        fun checkNull() = requiredParamNames.isEmpty()
 
         fun checkPos(requestParams: ByPositionParams) =
             requestParams.params.size.let {
@@ -83,31 +83,24 @@ class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : 
         }
     }
 
-    private fun convertToArguments(params: Params?): Array<Any?> =
-        when (params) {
-            null -> arrayOf()
-            is ByNameParams -> convertMapToArguments(params.params)
-            is ByPositionParams -> convertArrayToArguments(params.params)
+    private fun convertToArguments(params: Params?): Array<Any?> {
+        fun nulls() = sequence { while (true) yield(null) }
+
+        val jsonValues = when (params) {
+            null -> nulls()
+            is ByNameParams -> paramNames.asSequence().map { params.params[it] }
+            is ByPositionParams -> params.params.asSequence() + nulls()
         }
 
-    private fun convertArrayToArguments(params: List<JsonNode>) =
-        convertToArguments(params.asSequence() + sequence {
-            while (true) yield(null)
-        })
+        fun JsonNode.parse(type: Class<*>) = Json.parseNode(this, type)
+        fun String.parseJson(type: Class<*>) = Json.parse<Any?>(this, type)
 
-    private fun convertMapToArguments(params: Map<String, JsonNode>) =
-        convertToArguments(paramNames.asSequence().map {
-            params[it]
-        })
-
-    private fun convertToArguments(params: Sequence<JsonNode?>): Array<Any?> =
-        params
+        return jsonValues
             .zip(paramByName.values.asSequence())
             .map { (node, param) ->
-                node?.let {
-                    Json.parseNode(it, param.type)
-                } ?: param.defaultValue?.let { Json.parse<Any?>(it, param.type) }
+                node?.parse(param.type) ?: param.defaultValue?.parseJson(param.type)
             }
             .toList()
             .toTypedArray()
+    }
 }
