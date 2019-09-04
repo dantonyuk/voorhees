@@ -25,6 +25,8 @@ class WebServiceTest {
 
             fun replicate(@Param(name = "str") str: String): String
 
+            fun replicate2(str: String): String
+
             fun breakALeg(): String
 
             fun breakAnArm(): String
@@ -45,9 +47,16 @@ class WebServiceTest {
     }
 
     @Test
-    fun `call by named parameters should work`() {
+    fun `short-call by named parameters should work`() {
         val testService = client.getService(RemoteService::class.java)
         val result = testService.replicate("test")
+        assertEquals("testtest", result)
+    }
+
+    @Test
+    fun `short-call by positional parameters should work`() {
+        val testService = client.getService(RemoteService::class.java)
+        val result = testService.replicate2("test")
         assertEquals("testtest", result)
     }
 

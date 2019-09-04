@@ -91,7 +91,9 @@ class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : 
         }
 
     private fun convertArrayToArguments(params: List<JsonNode>) =
-        convertToArguments(params.asSequence())
+        convertToArguments(params.asSequence() + sequence {
+            while (true) yield(null)
+        })
 
     private fun convertMapToArguments(params: Map<String, JsonNode>) =
         convertToArguments(paramNames.asSequence().map {

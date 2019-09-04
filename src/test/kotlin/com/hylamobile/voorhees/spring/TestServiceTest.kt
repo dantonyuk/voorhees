@@ -87,8 +87,23 @@ class TestServiceTest {
     }
 
     @Test
-    fun `call of method with unspecified parameter with default value should succeed`() {
+    fun `call of default-parameters method with unspecified parameter should succeed`() {
         val request = Request("replicate", ByNameParams(mapOf("str" to TextNode("test"))), NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(Json.serializeRequest(request)))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("result").value(`is`("testtest")))
+            .andExpect(jsonPath("error").value(nullValue()))
+            .andExpect(jsonPath("id").value(`is`(1)))
+            .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
+    }
+
+    @Test
+    fun `call of default-parameters method with short parameter list should succeed`() {
+        val request = Request("replicate", ByPositionParams(listOf(TextNode("test"))), NumberId(1))
         mockMvc.perform(MockMvcRequestBuilders.post("/test")
             .contentType(MediaType.APPLICATION_JSON_UTF8)
             .accept(MediaType.APPLICATION_JSON)
