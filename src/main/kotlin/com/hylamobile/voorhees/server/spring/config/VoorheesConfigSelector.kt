@@ -6,5 +6,5 @@ import org.springframework.core.type.AnnotationMetadata
 class VoorheesConfigSelector : ImportSelector {
 
     override fun selectImports(importingClassMetadata: AnnotationMetadata): Array<String> =
-        arrayOf(VoorheesConfig::class.java.name)
+        arrayOf(VoorheesAutoConfiguration::class.java.name)
 }
