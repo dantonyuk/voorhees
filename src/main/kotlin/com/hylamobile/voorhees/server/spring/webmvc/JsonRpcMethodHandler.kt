@@ -10,6 +10,7 @@ import java.lang.reflect.Method
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import org.springframework.core.DefaultParameterNameDiscoverer
+import java.lang.reflect.Type
 import kotlin.collections.LinkedHashMap
 
 
@@ -22,7 +23,7 @@ class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : 
 
         data class MethodParameter(
             val name: String,
-            val type: Class<*>,
+            val type: Type,
             val defaultValue: Option<Any?> = Option.none())
     }
 
@@ -30,22 +31,23 @@ class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : 
         method.parameters
             .zip(parameterNameDiscoverer.getParameterNames(method) ?: emptyArray())
             .map { (param, discoveredName) ->
+                val type = param.parameterizedType
                 when (val anno = param.getAnnotation(Param::class.java)) {
-                    null -> MethodParameter(discoveredName, param.type)
+                    null -> MethodParameter(discoveredName, type)
                     else -> {
                         val paramName = anno.name.ifEmpty { discoveredName }
                         val defaultValue: Option<Any?> = anno.defaultValue.normalizedDefault
                             ?.run {
                                 Option.some(
                                     try {
-                                        Json.parse<Any?>(this, param.type)
+                                        Json.parse<Any?>(this, type)
                                     }
                                     catch (ex: java.io.IOException) {
                                         this
                                     })
                             } ?: Option.none()
 
-                        MethodParameter(paramName, param.type, defaultValue)
+                        MethodParameter(paramName, type, defaultValue)
                     }
                 }
             }
@@ -90,8 +92,9 @@ class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : 
 
             JsonRpcResponse(jsonResponse).respondTo(httpResponse)
         }
-        catch (e: InvocationTargetException) {
-            val targetEx = e.targetException
+        catch (ex: InvocationTargetException) {
+            ex.printStackTrace()
+            val targetEx = ex.targetException
             val error =
                 if (targetEx is JsonRpcException) targetEx.error
                 else ErrorCode.INTERNAL_ERROR.toError(targetEx.message)
@@ -110,7 +113,7 @@ class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : 
             is ByPositionParams -> params.params.asSequence() + nulls()
         }
 
-        fun JsonNode.parse(type: Class<*>) = Json.parseNode(this, type)
+        fun JsonNode.parse(type: Type) = Json.parseNode(this, type)
 
         return jsonValues
             .zip(paramByName.values.asSequence())

@@ -157,4 +157,7 @@ object Json {
         val parser = objectMapper.factory.createParser(json)
         return objectMapper.readTree<TreeNode>(parser)
     }
+
+    fun writeToTree(value: Any?): JsonNode =
+        objectMapper.valueToTree(value) ?: NullNode.instance
 }
