@@ -342,4 +342,72 @@ class TestServiceTest {
             .andExpect(jsonPath("id").value(`is`(1)))
             .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
     }
+
+    @Test
+    fun `POJO method with positional parameters should return POJO`() {
+        val person = Person("johnny", 20)
+
+        val request = Request("birthday", ByPositionParams(listOf(Json.writeToTree(person))), NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(Json.serializeRequest(request)))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("result.age").value(`is`(21)))
+            .andExpect(jsonPath("error").value(nullValue()))
+            .andExpect(jsonPath("id").value(`is`(1)))
+            .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
+    }
+
+    @Test
+    fun `POJO method with named parameters should return POJO`() {
+        val person = Person("johnny", 20)
+
+        val request = Request("birthday", ByNameParams(mapOf("person" to Json.writeToTree(person))), NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(Json.serializeRequest(request)))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("result.age").value(`is`(21)))
+            .andExpect(jsonPath("error").value(nullValue()))
+            .andExpect(jsonPath("id").value(`is`(1)))
+            .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
+    }
+
+    @Test
+    fun `POJO collection method with positional parameters should return POJO`() {
+        val person = Person("johnny", 20)
+
+        val request = Request("birthdays", ByPositionParams(listOf(Json.writeToTree(listOf(person)))), NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(Json.serializeRequest(request)))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("result[0].age").value(`is`(21)))
+            .andExpect(jsonPath("error").value(nullValue()))
+            .andExpect(jsonPath("id").value(`is`(1)))
+            .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
+    }
+
+    @Test
+    fun `POJO collection method with named parameters should return POJO`() {
+        val person = Person("johnny", 20)
+
+        val request = Request("birthdays", ByNameParams(mapOf("people" to Json.writeToTree(listOf(person)))), NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(Json.serializeRequest(request)))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("result[0].age").value(`is`(21)))
+            .andExpect(jsonPath("error").value(nullValue()))
+            .andExpect(jsonPath("id").value(`is`(1)))
+            .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
+    }
 }
