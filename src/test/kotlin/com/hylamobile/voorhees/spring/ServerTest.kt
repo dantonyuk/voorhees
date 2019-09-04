@@ -15,6 +15,11 @@ class TestService {
         @Param(defaultValue = "2") times: Int) =
         s.repeat(times)
 
+    fun replicate2(
+        @Param(name = "str") s: String,
+        @Param(defaultValue = "2") times: Int) =
+        s.repeat(times)
+
     fun theAnswer() = 42
 
     fun breakALeg(): String = throw InternalErrorException("A leg is broken")

@@ -25,6 +25,8 @@ class WebServiceTest {
 
             fun replicate(@Param(name = "str") str: String): String
 
+            fun replicate2(str: String): String
+
             fun breakALeg(): String
 
             fun breakAnArm(): String
@@ -38,21 +40,28 @@ class WebServiceTest {
         get() = JsonRpcClient(ServerConfig("http://localhost:$localServerPort"))
 
     @Test
-    fun testRemote() {
+    fun `regular call should work`() {
         val testService = client.getService(RemoteService::class.java)
         val result = testService.plus(3, 4)
         assertEquals(7, result)
     }
 
     @Test
-    fun testDefault() {
+    fun `short-call by named parameters should work`() {
         val testService = client.getService(RemoteService::class.java)
         val result = testService.replicate("test")
         assertEquals("testtest", result)
     }
 
     @Test
-    fun testJsonError() {
+    fun `short-call by positional parameters should work`() {
+        val testService = client.getService(RemoteService::class.java)
+        val result = testService.replicate2("test")
+        assertEquals("testtest", result)
+    }
+
+    @Test
+    fun `internal error response should fail`() {
         try {
             val testService = client.getService(RemoteService::class.java)
             testService.breakALeg()
@@ -64,7 +73,7 @@ class WebServiceTest {
     }
 
     @Test
-    fun testException() {
+    fun `custom exception response should fail`() {
         try {
             val testService = client.getService(RemoteService::class.java)
             testService.breakAnArm()
