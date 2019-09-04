@@ -11,7 +11,7 @@ class TestService {
     fun plus(l: Int, r: Int) = l + r
 
     fun replicate(
-        @Param(name = "str") s: String,
+        @Param(name = "str", defaultValue = "xa") s: String,
         @Param(defaultValue = "2") times: Int) =
         s.repeat(times)
 

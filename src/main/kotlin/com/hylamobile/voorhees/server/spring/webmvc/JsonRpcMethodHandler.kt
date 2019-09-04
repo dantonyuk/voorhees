@@ -4,12 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.hylamobile.voorhees.server.annotations.Param
 import com.hylamobile.voorhees.server.annotations.normalizedDefault
 import com.hylamobile.voorhees.jsonrpc.*
+import com.hylamobile.voorhees.util.Option
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import org.springframework.core.DefaultParameterNameDiscoverer
-
+import kotlin.collections.LinkedHashMap
 
 
 class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : JsonRpcHandler {
@@ -22,7 +23,7 @@ class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : 
         data class MethodParameter(
             val name: String,
             val type: Class<*>,
-            val defaultValue: String? = null)
+            val defaultValue: Option<Any?> = Option.none())
     }
 
     private val paramByName: LinkedHashMap<String, MethodParameter> =
@@ -33,7 +34,17 @@ class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : 
                     null -> MethodParameter(discoveredName, param.type)
                     else -> {
                         val paramName = anno.name.ifEmpty { discoveredName }
-                        val defaultValue = anno.defaultValue.normalizedDefault
+                        val defaultValue: Option<Any?> = anno.defaultValue.normalizedDefault
+                            ?.run {
+                                Option.some(
+                                    try {
+                                        Json.parse<Any?>(this, param.type)
+                                    }
+                                    catch (ex: java.io.IOException) {
+                                        this
+                                    })
+                            } ?: Option.none()
+
                         MethodParameter(paramName, param.type, defaultValue)
                     }
                 }
@@ -45,7 +56,7 @@ class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : 
     private val paramNames = parameters.map { it.name }
 
     private val requiredParamNames =
-        paramByName.values.filter { it.defaultValue == null }.map { it.name }
+        paramByName.values.filter { it.defaultValue.isEmpty }.map { it.name }
 
     fun compatibleWith(requestParams: Params?): Boolean {
         fun checkNull() = requiredParamNames.isEmpty()
@@ -100,12 +111,11 @@ class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : 
         }
 
         fun JsonNode.parse(type: Class<*>) = Json.parseNode(this, type)
-        fun String.parseJson(type: Class<*>) = Json.parse<Any?>(this, type)
 
         return jsonValues
             .zip(paramByName.values.asSequence())
             .map { (node, param) ->
-                node?.parse(param.type) ?: param.defaultValue?.parseJson(param.type)
+                node?.parse(param.type) ?: param.defaultValue.getOrNull
             }
             .toList()
             .toTypedArray()
