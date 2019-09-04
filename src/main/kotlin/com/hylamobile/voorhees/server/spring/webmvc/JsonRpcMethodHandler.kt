@@ -8,11 +8,16 @@ import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import org.springframework.core.DefaultParameterNameDiscoverer
+
+
 
 class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : JsonRpcHandler {
 
     companion object {
         const val REQ_ATTR_NAME = "jsonrpc:request"
+
+        val parameterNameDiscoverer = DefaultParameterNameDiscoverer()
 
         data class MethodParameter(
             val name: String,
@@ -21,18 +26,20 @@ class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : 
     }
 
     private val paramByName: LinkedHashMap<String, MethodParameter> =
-        method.parameters.map {
-            when (val anno = it.getAnnotation(Param::class.java)) {
-                null -> MethodParameter(it.name, it.type)
-                else -> {
-                    val name = anno.name.ifEmpty { it.name }
-                    val defaultValue = anno.defaultValue.normalizedDefault
-                    MethodParameter(name, it.type, defaultValue)
+        method.parameters
+            .zip(parameterNameDiscoverer.getParameterNames(method) ?: emptyArray())
+            .map { (param, discoveredName) ->
+                when (val anno = param.getAnnotation(Param::class.java)) {
+                    null -> MethodParameter(discoveredName, param.type)
+                    else -> {
+                        val paramName = anno.name.ifEmpty { discoveredName }
+                        val defaultValue = anno.defaultValue.normalizedDefault
+                        MethodParameter(paramName, param.type, defaultValue)
+                    }
                 }
             }
-        }
-        .map { it.name to it }
-        .toMap(LinkedHashMap())
+            .map { it.name to it }
+            .toMap(LinkedHashMap())
 
     private val parameters = paramByName.values
     private val paramNames = parameters.map { it.name }
