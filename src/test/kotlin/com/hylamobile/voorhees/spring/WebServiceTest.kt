@@ -38,21 +38,21 @@ class WebServiceTest {
         get() = JsonRpcClient(ServerConfig("http://localhost:$localServerPort"))
 
     @Test
-    fun testRemote() {
+    fun `regular call should work`() {
         val testService = client.getService(RemoteService::class.java)
         val result = testService.plus(3, 4)
         assertEquals(7, result)
     }
 
     @Test
-    fun testDefault() {
+    fun `call by named parameters should work`() {
         val testService = client.getService(RemoteService::class.java)
         val result = testService.replicate("test")
         assertEquals("testtest", result)
     }
 
     @Test
-    fun testJsonError() {
+    fun `internal error response should fail`() {
         try {
             val testService = client.getService(RemoteService::class.java)
             testService.breakALeg()
@@ -64,7 +64,7 @@ class WebServiceTest {
     }
 
     @Test
-    fun testException() {
+    fun `custom exception response should fail`() {
         try {
             val testService = client.getService(RemoteService::class.java)
             testService.breakAnArm()
