@@ -15,8 +15,11 @@ import java.nio.charset.Charset
 
 data class ServerConfig(
     val url: String,
-    val connectTimeout: Int? = null,
-    val readTimeout: Int? = null)
+    var connectTimeout: Int? = null,
+    var readTimeout: Int? = null) {
+    // for Java
+    constructor(url: String) : this(url, null, null)
+}
 
 open class JsonRpcClient(private val serverConfig: ServerConfig) {
 
