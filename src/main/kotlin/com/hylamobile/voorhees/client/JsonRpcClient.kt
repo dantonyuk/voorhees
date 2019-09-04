@@ -30,9 +30,11 @@ open class JsonRpcClient(private val serverConfig: ServerConfig) {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T> getService(location: String, type: Class<T>): T =
-        Proxy.newProxyInstance(type.classLoader,
-            arrayOf(type), ServiceProxy(serverConfig.url + location)) as T
+    fun <T> getService(location: String, type: Class<T>): T {
+        val url = serverConfig.url + if (serverConfig.url.endsWith("/")) "" else "/"
+        val loc = if (location.startsWith("/")) location.substring(1) else location
+        return Proxy.newProxyInstance(type.classLoader, arrayOf(type), ServiceProxy(url + loc)) as T
+    }
 
     open fun updateOptions(options: RequestExecutionOptions) {
         serverConfig.connectTimeout?.also { options.timeoutInMillisecond = it }
