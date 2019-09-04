@@ -37,7 +37,7 @@ class WebServiceTest {
     var localServerPort: Int = 0
 
     private val client
-        get() = JsonRpcClient(ServerConfig("http://localhost:$localServerPort"))
+        get() = JsonRpcClient(ServerConfig("http://localhost:$localServerPort/"))
 
     @Test
     fun `regular call should work`() {
