@@ -1,6 +1,7 @@
 package com.hylamobile.voorhees.server.spring.webmvc
 
-import com.hylamobile.voorhees.jsonrpc.*
+import com.hylamobile.voorhees.jsonrpc.ErrorCode
+import com.hylamobile.voorhees.jsonrpc.Request
 import com.hylamobile.voorhees.server.annotations.DontExpose
 import com.hylamobile.voorhees.server.annotations.JsonRpcService
 import org.springframework.beans.factory.annotation.Value
@@ -50,34 +51,28 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
         return when {
             httpRequest.method != "POST" -> null
             !(contentType()?.compatibleWithJson() ?: true) -> null
-            accept().none { it.compatibleWithJson() } -> null
+            accept().none { mediaType -> mediaType.compatibleWithJson() } -> null
             else -> findHandler(httpRequest)
         }
     }
 
     private fun findHandler(httpRequest: HttpServletRequest): JsonRpcHandler? {
-        try {
-            val service = handlers[httpRequest.realPath] ?: return null
+        val serviceMethods = handlers[httpRequest.realPath] ?: return null
 
-            val jsonRequest: Request = httpRequest.reader.use(Json::readRequest)
-            httpRequest.setAttribute(JsonRpcMethodHandler.REQ_ATTR_NAME, jsonRequest)
+        val jsonRequest: Request = httpRequest.jsonRequest
 
-            val methods = service[jsonRequest.method]
-                ?: throw MethodNotFoundException("Method ${jsonRequest.method} not found")
+        val methods = serviceMethods[jsonRequest.method] ?:
+            return ErrorCode.METHOD_NOT_FOUND.toHandler("Method ${jsonRequest.method} not found")
 
-            val compatibleHandlers = methods.filter { it.compatibleWith(jsonRequest.params) }
-            if (compatibleHandlers.isEmpty())
-                throw InvalidParamsException("Method ${jsonRequest.method} with arguments ${jsonRequest.params} not found")
+        val compatibleHandlers = methods
+            .filter { method -> method.compatibleWith(jsonRequest.params) }
+            .ifEmpty {
+                return ErrorCode.INVALID_PARAMS.toHandler(
+                    "Method ${jsonRequest.method} with arguments ${jsonRequest.params} not found")
+            }
 
-            return pickBest(compatibleHandlers, jsonRequest)
-        }
-        catch (ex: JsonRpcException) {
-            return JsonRpcErrorHandler(ex)
-        }
+        return pickBest(compatibleHandlers, jsonRequest)
     }
 
     private fun pickBest(handlers: List<JsonRpcMethodHandler>, @Suppress("UNUSED_PARAMETER") jsonRequest: Request) = handlers[0]
-
-    private val HttpServletRequest.realPath
-        get() = pathInfo ?: requestURI.substring(contextPath.length)
 }

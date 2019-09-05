@@ -29,11 +29,17 @@ data class Request @JsonCreator constructor(
 
 sealed class Params
 
-data class ByPositionParams constructor(val params: List<JsonNode>) : Params() {
+data class ByPositionParams(val params: List<JsonNode>) : Params() {
+    constructor(vararg nodes: Any?) :
+        this(nodes.asSequence().map(Any?::toJsonTree).toList())
+
     override fun toString(): String = params.toString()
 }
 
 data class ByNameParams constructor(val params: Map<String, JsonNode>) : Params() {
+    constructor(vararg nodes: Pair<String, Any?>) :
+        this(nodes.asSequence().map { (k, v) -> k to v.toJsonTree() }.toMap())
+
     override fun toString(): String = params.toString()
 }
 

@@ -1,16 +1,12 @@
 package com.hylamobile.voorhees.client
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.github.kittinunf.fuel.core.RequestExecutionOptions
 import com.github.kittinunf.fuel.core.extensions.jsonBody
 import com.github.kittinunf.fuel.httpPost
 import com.hylamobile.voorhees.client.annotation.JsonRpcService
 import com.hylamobile.voorhees.client.annotation.Param
 import com.hylamobile.voorhees.jsonrpc.*
-import java.lang.reflect.InvocationHandler
-import java.lang.reflect.Method
-import java.lang.reflect.Parameter
-import java.lang.reflect.Proxy
+import java.lang.reflect.*
 import java.nio.charset.Charset
 
 data class ServerConfig(
@@ -46,57 +42,55 @@ open class JsonRpcClient(private val serverConfig: ServerConfig) {
 
     inner class ServiceProxy(private val endpoint: String) : InvocationHandler {
         override fun invoke(proxy: Any?, method: Method, args: Array<out Any?>?): Any? {
+            fun responseType() =
+                object : ParameterizedType {
+                    override fun getRawType(): Type = Response::class.java
+                    override fun getOwnerType(): Type? = null
+                    override fun getActualTypeArguments(): Array<Type> = arrayOf(method.genericReturnType)
+                }
+
             // for debugger
             if (method.name == "toString") {
                 return "Just a proxy"
             }
 
-            val params = when {
-                args == null -> null
-                method.hasOnlyNamedParameters() -> prepareNamedParams(method, args)
-                else -> preparePosParams(args)
-            }
-
-            val jsonRequest = Request(method = method.name, params = params)
-
-            val (_, _, result) = endpoint.httpPost()
-                .apply { this@JsonRpcClient.updateOptions(executionOptions) }
-                .jsonBody(Json.serializeRequest(jsonRequest))
-                .response()
-
-            return result
-                .fold({
-                    val repr = it.toString(Charset.forName("UTF-8"))
-                    val json = Json.parseTree(repr)
-                    val resp = Json.parse<Response<*>>(repr, Response::class.java)
-                    resp.error?.let { ex -> throw CustomJsonRpcException(ex) }
-                    val jsonResult = json?.get("result") ?: throw NullPointerException()
-                    Json.parseNode(jsonResult, method.genericReturnType)
-                }, {
-                    throw it
-                })
+            val jsonRequest = prepareRequest(method, args)
+            val httpResult = sendRequest(jsonRequest)
+            val jsonRepr = httpResult.get().toString(Charset.forName("UTF-8"))
+            val jsonResponse = jsonRepr.parseJsonAs(responseType()) as Response<*>
+            jsonResponse.error?.let { error -> throw CustomJsonRpcException(error) }
+            return jsonResponse.result
         }
 
         // private region
 
-        private fun Method.hasOnlyNamedParameters() =
-            parameters.all { it.paramAnno != null }
+        private fun prepareRequest(method: Method, args: Array<out Any?>?): Request {
 
-        private fun preparePosParams(args: Array<out Any?>) =
-            ByPositionParams(args.asJsonSeq().toList())
+            fun Parameter.paramAnno() = getAnnotation(Param::class.java)
 
-        private fun prepareNamedParams(method: Method, args: Array<out Any?>) =
-            ByNameParams(method.parameters.asSequence()
-                .map { it.paramAnno.name }
-                .zip(args.asJsonSeq())
-                .toMap())
+            fun <T> Array<out T?>.asJsonSeq() = asSequence().map(Any?::toJsonTree)
 
-        // extensions
+            fun onlyNamedParameters() = method.parameters.all { it.paramAnno() != null }
 
-        private fun <T> Array<out T?>.asJsonSeq() =
-            asSequence().map { Json.objectMapper.valueToTree<JsonNode>(it) }
+            val params = when {
+                args == null -> null
+                onlyNamedParameters() ->
+                    ByNameParams(method.parameters.asSequence()
+                        .map { it.paramAnno().name }
+                        .zip(args.asJsonSeq())
+                        .toMap())
+                else ->
+                    ByPositionParams(args.asJsonSeq().toList())
+            }
 
-        private val Parameter.paramAnno
-            get() = getAnnotation(Param::class.java)
+            return Request(method = method.name, params = params)
+        }
+
+        private fun sendRequest(jsonRequest: Request) =
+            endpoint.httpPost()
+                .apply { this@JsonRpcClient.updateOptions(executionOptions) }
+                .jsonBody(jsonRequest.jsonString)
+                .response()
+                .third
     }
 }

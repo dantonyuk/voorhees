@@ -3,55 +3,48 @@ package com.hylamobile.voorhees.jsonrpc
 import com.fasterxml.jackson.databind.node.IntNode
 import org.junit.Assert.*
 import org.junit.Test
-import java.io.StringReader
 import java.io.StringWriter
 
 class JsonRpcRequestTest {
 
     @Test
     fun `null request id should be serialized to null`() {
-        val writer = StringWriter()
-        Json.writeRequest(Request("eval"), writer)
+        val request = Request("eval").jsonString
 
-        assertEquals("{\"method\":\"eval\",\"params\":null,\"id\":null,\"jsonrpc\":\"2.0\"}", writer.toString())
+        assertEquals("{\"method\":\"eval\",\"params\":null,\"id\":null,\"jsonrpc\":\"2.0\"}", request)
     }
 
     @Test
     fun `string request id should be serialized to text`() {
-        val writer = StringWriter()
-        Json.writeRequest(Request("eval", id = StringId("req0001")), writer)
+        val request = Request("eval", id = StringId("req0001")).jsonString
 
-        assertEquals("{\"method\":\"eval\",\"params\":null,\"id\":\"req0001\",\"jsonrpc\":\"2.0\"}", writer.toString())
+        assertEquals("{\"method\":\"eval\",\"params\":null,\"id\":\"req0001\",\"jsonrpc\":\"2.0\"}", request)
     }
 
     @Test
     fun `number request id should be serialized to numeric`() {
-        val writer = StringWriter()
-        Json.writeRequest(Request("eval", id = NumberId(42)), writer)
+        val request = Request("eval", id = NumberId(42)).jsonString
 
-        assertEquals("{\"method\":\"eval\",\"params\":null,\"id\":42,\"jsonrpc\":\"2.0\"}", writer.toString())
+        assertEquals("{\"method\":\"eval\",\"params\":null,\"id\":42,\"jsonrpc\":\"2.0\"}", request)
     }
 
     @Test
     fun `null request id should be deserialized to null`() {
-        val request = Json.readRequest(StringReader(
-            "{\"method\":\"eval\",\"params\":null,\"id\":null,\"jsonrpc\":\"2.0\"}"))
+        val request = "{\"method\":\"eval\",\"params\":null,\"id\":null,\"jsonrpc\":\"2.0\"}".parseRequest()
 
         assertEquals(null, request.id)
     }
 
     @Test
     fun `text request id should be deserialized to string`() {
-        val request = Json.readRequest(StringReader(
-            "{\"method\":\"eval\",\"params\":null,\"id\":\"req0001\",\"jsonrpc\":\"2.0\"}"))
+        val request = "{\"method\":\"eval\",\"params\":null,\"id\":\"req0001\",\"jsonrpc\":\"2.0\"}".parseRequest()
 
         assertEquals(StringId("req0001"), request.id)
     }
 
     @Test
     fun `numeric request id should be deserialized to number`() {
-        val request = Json.readRequest(StringReader(
-            "{\"method\":\"eval\",\"params\":null,\"id\":42,\"jsonrpc\":\"2.0\"}"))
+        val request = "{\"method\":\"eval\",\"params\":null,\"id\":42,\"jsonrpc\":\"2.0\"}".parseRequest()
 
         assertEquals(NumberId(42), request.id)
     }
@@ -59,85 +52,74 @@ class JsonRpcRequestTest {
     @Test(expected = InvalidRequestException::class)
     fun `float request id should throw InvalidRequest`() {
         rethrowCause {
-            Json.readRequest(StringReader(
-                "{\"method\":\"eval\",\"params\":null,\"id\":42.0,\"jsonrpc\":\"2.0\"}"))
+            "{\"method\":\"eval\",\"params\":null,\"id\":42.0,\"jsonrpc\":\"2.0\"}".parseRequest()
         }
     }
 
     @Test(expected = InvalidRequestException::class)
     fun `object request id should throw InvalidRequest`() {
         rethrowCause {
-            Json.readRequest(StringReader(
-                "{\"method\":\"eval\",\"params\":null,\"id\":{},\"jsonrpc\":\"2.0\"}"))
+            "{\"method\":\"eval\",\"params\":null,\"id\":{},\"jsonrpc\":\"2.0\"}".parseRequest()
         }
     }
 
     @Test(expected = InvalidRequestException::class)
     fun `array request id should throw InvalidRequest`() {
         rethrowCause {
-            Json.readRequest(StringReader(
-                "{\"method\":\"eval\",\"params\":null,\"id\":[],\"jsonrpc\":\"2.0\"}"))
+            "{\"method\":\"eval\",\"params\":null,\"id\":[],\"jsonrpc\":\"2.0\"}".parseRequest()
         }
     }
 
     @Test(expected = InvalidRequestException::class)
     fun `null version should throw InvalidRequest`() {
         rethrowCause {
-            Json.readRequest(StringReader(
-                "{\"method\":\"eval\",\"params\":null,\"id\":null,\"jsonrpc\":null}"))
+            "{\"method\":\"eval\",\"params\":null,\"id\":null,\"jsonrpc\":null}".parseRequest()
         }
     }
 
     @Test(expected = InvalidRequestException::class)
     fun `numeric version should throw InvalidRequest`() {
         rethrowCause {
-            Json.readRequest(StringReader(
-                "{\"method\":\"eval\",\"params\":null,\"id\":null,\"jsonrpc\":42}"))
+            "{\"method\":\"eval\",\"params\":null,\"id\":null,\"jsonrpc\":42}".parseRequest()
         }
     }
 
     @Test(expected = InvalidRequestException::class)
     fun `object version should throw InvalidRequest`() {
         rethrowCause {
-            Json.readRequest(StringReader(
-                "{\"method\":\"eval\",\"params\":null,\"id\":null,\"jsonrpc\":{}}"))
+            "{\"method\":\"eval\",\"params\":null,\"id\":null,\"jsonrpc\":{}}".parseRequest()
         }
     }
 
     @Test(expected = InvalidRequestException::class)
     fun `array version should throw InvalidRequest`() {
         rethrowCause {
-            Json.readRequest(StringReader(
-                "{\"method\":\"eval\",\"params\":null,\"id\":null,\"jsonrpc\":[]}"))
+            "{\"method\":\"eval\",\"params\":null,\"id\":null,\"jsonrpc\":[]}".parseRequest()
         }
     }
 
     @Test(expected = InvalidRequestException::class)
     fun `not 2_0 version should throw InvalidRequest`() {
         rethrowCause {
-            Json.readRequest(StringReader(
-                "{\"method\":\"eval\",\"params\":null,\"id\":null,\"jsonrpc\":\"1.0\"}"))
+            "{\"method\":\"eval\",\"params\":null,\"id\":null,\"jsonrpc\":\"1.0\"}".parseRequest()
         }
     }
 
     @Test
     fun `2_0 version should be parsed`() {
-        val request = Json.readRequest(StringReader(
-            "{\"method\":\"eval\",\"params\":null,\"id\":null,\"jsonrpc\":\"2.0\"}"))
+        val request = "{\"method\":\"eval\",\"params\":null,\"id\":null,\"jsonrpc\":\"2.0\"}".parseRequest()
 
         assertEquals("2.0", request.jsonrpc.version)
     }
 
     @Test fun `null params should be parsed as null`() {
-        val request = Json.readRequest(StringReader(
-            "{\"method\":\"eval\",\"params\":null,\"id\":null,\"jsonrpc\":\"2.0\"}"))
+        val request = "{\"method\":\"eval\",\"params\":null,\"id\":null,\"jsonrpc\":\"2.0\"}".parseRequest()
 
         assertNull(request.params)
     }
 
     @Test fun `array params should be parsed as by-position params`() {
-        val request = Json.readRequest(StringReader(
-            "{\"method\":\"eval\",\"params\":[1,2,3],\"id\":null,\"jsonrpc\":\"2.0\"}"))
+        val request = "{\"method\":\"eval\",\"params\":[1,2,3],\"id\":null,\"jsonrpc\":\"2.0\"}".parseRequest()
 
         assertNotNull(request.params)
         assertEquals(ByPositionParams::class.java, request.params?.javaClass)
@@ -145,8 +127,8 @@ class JsonRpcRequestTest {
     }
 
     @Test fun `object params should be parsed as by-name params`() {
-        val request = Json.readRequest(StringReader(
-            "{\"method\":\"eval\",\"params\":{\"first\": 1, \"second\": 2},\"id\":null,\"jsonrpc\":\"2.0\"}"))
+        val request = "{\"method\":\"eval\",\"params\":{\"first\": 1, \"second\": 2},\"id\":null,\"jsonrpc\":\"2.0\"}"
+            .parseRequest()
 
         assertNotNull(request.params)
         assertEquals(ByNameParams::class.java, request.params?.javaClass)

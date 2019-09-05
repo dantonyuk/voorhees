@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.node.*
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.fasterxml.jackson.databind.module.SimpleModule
 import java.io.Reader
-import java.io.StringWriter
 import java.io.Writer
 import java.lang.reflect.Type
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -102,62 +101,40 @@ class ErrorDeserializer : StdDeserializer<Error>(Error::class.java) {
     }
 }
 
-object Json {
+private val objectMapper = ObjectMapper().
+    registerModule(
+        SimpleModule()
+            .addSerializer(Id::class.java, JsonRpcIdSerializer())
+            .addDeserializer(Id::class.java, JsonRpcIdDeserializer())
+            .addSerializer(Version::class.java, VersionSerializer())
+            .addDeserializer(Version::class.java, VersionDeserializer())
+            .addSerializer(Params::class.java, ParamsSerializer())
+            .addDeserializer(Params::class.java, ParamsDeserializer())
+            .addDeserializer(Error::class.java, ErrorDeserializer()))
 
-    val objectMapper = ObjectMapper().
-        registerModule(
-            SimpleModule()
-                .addSerializer(Id::class.java, JsonRpcIdSerializer())
-                .addDeserializer(Id::class.java, JsonRpcIdDeserializer())
-                .addSerializer(Version::class.java, VersionSerializer())
-                .addDeserializer(Version::class.java, VersionDeserializer())
-                .addSerializer(Params::class.java, ParamsSerializer())
-                .addDeserializer(Params::class.java, ParamsDeserializer())
-                .addDeserializer(Error::class.java, ErrorDeserializer())
-        )
+val Any.jsonString
+    get() = objectMapper.writeValueAsString(this)
 
-    fun readRequest(reader: Reader): Request =
-        objectMapper.readValue(reader, Request::class.java)
+fun Reader.readRequest(): Request =
+    objectMapper.readValue(this, Request::class.java)
 
-    fun writeRequest(request: Request, writer: Writer) {
-        objectMapper.writeValue(writer, request)
-    }
+fun Writer.writeResponse(response: Response<*>) =
+    objectMapper.writeValue(this, response)
 
-    fun serializeRequest(request: Request): String =
-        StringWriter().run {
-            writeRequest(request, this)
-            toString()
-        }
+fun String.parseRequest(): Request = parseJsonAs(Request::class.java) as Request
 
-    fun readResponse(reader: Reader): Response<*> =
-        objectMapper.readValue(reader, Response::class.java)
+fun String.parseResponse(): Response<*> = parseJsonAs(Response::class.java) as Response<*>
 
-    fun writeResponse(response: Response<*>, writer: Writer) {
-        objectMapper.writeValue(writer, response)
-    }
+fun Any?.toJsonTree(): JsonNode =
+    objectMapper.valueToTree(this) ?: NullNode.instance
 
-    fun serializeResponse(response: Response<*>): String =
-        StringWriter().run {
-            writeResponse(response, this)
-            toString()
-        }
+fun String.parseJsonAs(type: Type): Any? {
+    val javaType = objectMapper.typeFactory.constructType(type)
+    return objectMapper.readValue(this, javaType)
+}
 
-    fun <T> parse(json: String, type: Type): T {
-        val javaType = objectMapper.typeFactory.constructType(type)
-        return objectMapper.readValue(json, javaType)
-    }
-
-    fun parseNode(node: TreeNode, type: Type): Any? {
-        val parser = objectMapper.treeAsTokens(node)
-        val javaType = objectMapper.typeFactory.constructType(type)
-        return objectMapper.readerFor(javaType).readValue(parser)
-    }
-
-    fun parseTree(json: String): TreeNode? {
-        val parser = objectMapper.factory.createParser(json)
-        return objectMapper.readTree<TreeNode>(parser)
-    }
-
-    fun writeToTree(value: Any?): JsonNode =
-        objectMapper.valueToTree(value) ?: NullNode.instance
+fun <T> TreeNode.parseAs(type: Type): T? {
+    val parser = objectMapper.treeAsTokens(this)
+    val javaType = objectMapper.typeFactory.constructType(type)
+    return objectMapper.readerFor(javaType).readValue(parser) as T?
 }

@@ -1,24 +1,34 @@
 package com.hylamobile.voorhees.server.spring.webmvc
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.hylamobile.voorhees.server.annotations.Param
-import com.hylamobile.voorhees.server.annotations.normalizedDefault
 import com.hylamobile.voorhees.jsonrpc.*
+import com.hylamobile.voorhees.server.annotations.optionDefaultValue
+import com.hylamobile.voorhees.server.annotations.paramAnno
 import com.hylamobile.voorhees.util.Option
+import com.hylamobile.voorhees.util.toArray
+import org.springframework.core.DefaultParameterNameDiscoverer
+import org.springframework.web.HttpRequestHandler
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
+import java.lang.reflect.Type
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import org.springframework.core.DefaultParameterNameDiscoverer
-import java.lang.reflect.Type
-import kotlin.collections.LinkedHashMap
 
+interface JsonRpcHandler : HttpRequestHandler
+
+fun ErrorCode.toHandler(data: Any?) = JsonRpcErrorHandler(toError(data))
+
+class JsonRpcErrorHandler(private val error: Error) : JsonRpcHandler {
+
+    override fun handleRequest(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse) {
+        val jsonRequest = httpRequest.jsonRequest
+        val jsonResponse = Response.error(error, jsonRequest.id)
+        httpResponse.send(jsonResponse)
+    }
+}
 
 class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : JsonRpcHandler {
 
     companion object {
-        const val REQ_ATTR_NAME = "jsonrpc:request"
-
         val parameterNameDiscoverer = DefaultParameterNameDiscoverer()
 
         data class MethodParameter(
@@ -31,34 +41,24 @@ class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : 
         method.parameters
             .zip(parameterNameDiscoverer.getParameterNames(method) ?: emptyArray())
             .map { (param, discoveredName) ->
+                val anno = param.paramAnno
+                val name = anno?.name?.ifBlank { null } ?: discoveredName
                 val type = param.parameterizedType
-                when (val anno = param.getAnnotation(Param::class.java)) {
-                    null -> MethodParameter(discoveredName, type)
-                    else -> {
-                        val paramName = anno.name.ifEmpty { discoveredName }
-                        val defaultValue: Option<Any?> = anno.defaultValue.normalizedDefault
-                            ?.run {
-                                Option.some(
-                                    try {
-                                        Json.parse<Any?>(this, type)
-                                    }
-                                    catch (ex: java.io.IOException) {
-                                        this
-                                    })
-                            } ?: Option.none()
-
-                        MethodParameter(paramName, type, defaultValue)
-                    }
-                }
+                val defaultValue = anno?.optionDefaultValue?.map {
+                    try { it.parseJsonAs(param.type) }
+                    catch (ex: java.io.IOException) { it }
+                } ?: Option.none()
+                MethodParameter(name, type, defaultValue)
             }
             .map { it.name to it }
             .toMap(LinkedHashMap())
 
     private val parameters = paramByName.values
+
     private val paramNames = parameters.map { it.name }
 
     private val requiredParamNames =
-        paramByName.values.filter { it.defaultValue.isEmpty }.map { it.name }
+        parameters.filter { it.defaultValue.isEmpty }.map { it.name }
 
     fun compatibleWith(requestParams: Params?): Boolean {
         fun checkNull() = requiredParamNames.isEmpty()
@@ -81,8 +81,7 @@ class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : 
     }
 
     override fun handleRequest(httpRequest: HttpServletRequest, httpResponse: HttpServletResponse) {
-        val jsonRequest = httpRequest.getAttribute(REQ_ATTR_NAME) as Request? ?:
-            throw IllegalStateException("Can not find $REQ_ATTR_NAME in request attributes")
+        val jsonRequest = httpRequest.jsonRequest
 
         val args = convertToArguments(jsonRequest.params)
 
@@ -90,7 +89,7 @@ class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : 
             val result = method.invoke(bean, *args)
             val jsonResponse = Response.success(result, jsonRequest.id)
 
-            JsonRpcResponse(jsonResponse).respondTo(httpResponse)
+            httpResponse.send(jsonResponse)
         }
         catch (ex: InvocationTargetException) {
             ex.printStackTrace()
@@ -100,7 +99,7 @@ class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : 
                 else ErrorCode.INTERNAL_ERROR.toError(targetEx.message)
 
             val jsonResponse = Response.error(error, jsonRequest.id)
-            JsonRpcResponse(jsonResponse).respondTo(httpResponse)
+            httpResponse.send(jsonResponse)
         }
     }
 
@@ -113,14 +112,11 @@ class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : 
             is ByPositionParams -> params.params.asSequence() + nulls()
         }
 
-        fun JsonNode.parse(type: Type) = Json.parseNode(this, type)
-
         return jsonValues
-            .zip(paramByName.values.asSequence())
+            .zip(parameters.asSequence())
             .map { (node, param) ->
-                node?.parse(param.type) ?: param.defaultValue.getOrNull
+                node?.parseAs(param.type) ?: param.defaultValue.getOrNull
             }
-            .toList()
-            .toTypedArray()
+            .toArray(parameters.size)
     }
 }
