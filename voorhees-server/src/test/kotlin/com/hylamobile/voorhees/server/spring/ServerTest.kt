@@ -1,4 +1,4 @@
-package com.hylamobile.voorhees.spring
+package com.hylamobile.voorhees.server.spring
 
 import com.hylamobile.voorhees.jsonrpc.InternalErrorException
 import com.hylamobile.voorhees.server.annotations.DontExpose

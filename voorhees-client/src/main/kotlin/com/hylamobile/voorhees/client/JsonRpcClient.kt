@@ -83,7 +83,7 @@ open class JsonRpcClient(private val serverConfig: ServerConfig) {
                     ByPositionParams(args.asJsonSeq().toList())
             }
 
-            return Request(method = method.name, params = params)
+            return Request(method = method.name, params = params, id = NumberId(1))
         }
 
         private fun sendRequest(jsonRequest: Request) =
