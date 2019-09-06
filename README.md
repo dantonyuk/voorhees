@@ -29,7 +29,7 @@ artifact, or deploy it to your local maven repository.
 
 There is no need to take any additional step in order to integrate
 Voorhees. Having the jar dependency in your class path means that
-Spring Boot application will be configured automatically. 
+Spring Boot application will be configured automatically.
 
 To disable Voorhees auto-configuration, you want to set application
 property `spring.autoconfigure.exclude`:
@@ -43,7 +43,7 @@ spring:
 ### Spring Applications
 
 To enable Voorhees in your Spring applications, use
-[`@EnableVoorhees`](src/main/kotlin/com/hylamobile/voorhees/server/spring/annotation/EnableVoorhees.kt)
+[`@EnableVoorhees`](voorhees-server/src/main/kotlin/com/hylamobile/voorhees/server/spring/annotation/EnableVoorhees.kt)
 
 ```java
 @EnableVoorhees
@@ -54,7 +54,7 @@ public class JsonRpcConfiguration {
 ## Services
 
 A service in Voorhees is just a simple class marked as
-[`@JsonRpcService`](src/main/kotlin/com/hylamobile/voorhees/server/annotations/JsonRpcService.kt):
+[`@JsonRpcService`](voorhees-server/src/main/kotlin/com/hylamobile/voorhees/server/annotations/JsonRpcService.kt):
 
 ```java
 @JsonRpcService(location = "/my")
@@ -81,7 +81,7 @@ All the public methods of this service class (but not its' superclasses)
 will be exposed.
 
 If you want to suppress exposing specific method, annotate it with
-[`@DontExpose`](src/main/kotlin/com/hylamobile/voorhees/server/annotations/DontExpose.kt).
+[`@DontExpose`](voorhees-server/src/main/kotlin/com/hylamobile/voorhees/server/annotations/DontExpose.kt).
 
 ```java
 @JsonRpcService(location = "/my")
@@ -107,7 +107,7 @@ be used in order to get parameter names. And this is exactly what Spring
 parameter name discoverer does. Voorhees uses it to find these names.
 
 But there is also other way to name the parameters: Use `name` attribute
-of the [`@Param`](src/main/kotlin/com/hylamobile/voorhees/server/annotations/Param.kt)
+of the [`@Param`](voorhees-server/src/main/kotlin/com/hylamobile/voorhees/server/annotations/Param.kt)
 annotation:
 
 ```java
