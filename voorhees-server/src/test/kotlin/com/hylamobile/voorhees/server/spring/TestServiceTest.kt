@@ -407,4 +407,49 @@ class TestServiceTest {
             .andExpect(jsonPath("id").value(`is`(1)))
             .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
     }
+
+    @Test
+    fun `Null should be parsed as default values`() {
+        val request = Request("checkNullDefaultValues", null, NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(request.jsonString))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("result").value(`is`(true)))
+            .andExpect(jsonPath("error").value(nullValue()))
+            .andExpect(jsonPath("id").value(`is`(1)))
+            .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
+    }
+
+    @Test
+    fun `Null should be parsed as default values if parameters are positional`() {
+        val request = Request("checkNullDefaultValues", ByPositionParams(), NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(request.jsonString))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("result").value(`is`(true)))
+            .andExpect(jsonPath("error").value(nullValue()))
+            .andExpect(jsonPath("id").value(`is`(1)))
+            .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
+    }
+
+    @Test
+    fun `Null should be parsed as default values if parameters are named`() {
+        val request = Request("checkNullDefaultValues", ByNameParams(), NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(request.jsonString))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("result").value(`is`(true)))
+            .andExpect(jsonPath("error").value(nullValue()))
+            .andExpect(jsonPath("id").value(`is`(1)))
+            .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
+    }
 }

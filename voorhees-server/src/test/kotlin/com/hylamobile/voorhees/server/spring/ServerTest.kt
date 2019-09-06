@@ -32,6 +32,9 @@ class TestService {
 
     @DontExpose
     fun unexposed(): String = "the-password"
+
+    fun checkNullDefaultValues(@Param(defaultValue = "null") test: String?) =
+        test == null
 }
 
 data class Person(var name: String, var age: Int) {
