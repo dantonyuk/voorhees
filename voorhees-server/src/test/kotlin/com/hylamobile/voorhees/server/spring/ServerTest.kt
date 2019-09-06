@@ -4,8 +4,14 @@ import com.hylamobile.voorhees.jsonrpc.InternalErrorException
 import com.hylamobile.voorhees.server.annotations.DontExpose
 import com.hylamobile.voorhees.server.annotations.JsonRpcService
 import com.hylamobile.voorhees.server.annotations.Param
+import org.springframework.context.annotation.Configuration
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
+import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 
 @JsonRpcService(["/test"])
+@Suppress("UNUSED")
 class TestService {
 
     fun plus(l: Int, r: Int) = l + r
@@ -37,6 +43,33 @@ class TestService {
         test == null
 }
 
+@JsonRpcService(["/secured"])
+@Suppress("UNUSED")
+class SecuredService {
+
+    fun secret() = "password"
+}
+
+@Configuration
+@EnableWebSecurity
+open class WebSecurityConfig : WebSecurityConfigurerAdapter() {
+    override fun configure(http: HttpSecurity) {
+        http
+            .csrf().disable()
+            .authorizeRequests()
+                .antMatchers("/secured").hasRole("ADMIN")
+                .anyRequest().permitAll().and()
+            .httpBasic()
+    }
+
+    override fun configure(auth: AuthenticationManagerBuilder) {
+        auth.inMemoryAuthentication()
+            .withUser("admin").password("{noop}password").roles("ADMIN").and()
+            .withUser("user").password("{noop}password").roles("USER")
+    }
+}
+
 data class Person(var name: String, var age: Int) {
+    @Suppress("UNUSED")
     constructor() : this("", 0)
 }
