@@ -2,7 +2,11 @@ package com.hylamobile.voorhees.jsonrpc
 
 open class JsonRpcException(
     val error: Error, cause: Throwable? = null) :
-    RuntimeException(error.message, cause)
+    RuntimeException(error.message, cause) {
+
+    // for Java
+    constructor(error: Error) : this(error, null)
+}
 
 class CustomJsonRpcException(error: Error) : JsonRpcException(error)
 
@@ -16,4 +20,8 @@ class InvalidParamsException(data: Any? = null) :
     JsonRpcException(ErrorCode.INVALID_PARAMS.toError(data))
 
 open class InternalErrorException(data: Any? = null) :
-    JsonRpcException(ErrorCode.INTERNAL_ERROR.toError(data))
+    JsonRpcException(ErrorCode.INTERNAL_ERROR.toError(data)) {
+
+    // for Java
+    constructor() : this(null)
+}
