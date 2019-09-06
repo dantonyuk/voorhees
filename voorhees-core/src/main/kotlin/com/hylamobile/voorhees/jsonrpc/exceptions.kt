@@ -1,6 +1,6 @@
 package com.hylamobile.voorhees.jsonrpc
 
-sealed class JsonRpcException(
+open class JsonRpcException(
     val error: Error, cause: Throwable? = null) :
     RuntimeException(error.message, cause)
 
@@ -15,5 +15,5 @@ class MethodNotFoundException(data: Any? = null) :
 class InvalidParamsException(data: Any? = null) :
     JsonRpcException(ErrorCode.INVALID_PARAMS.toError(data))
 
-class InternalErrorException(data: Any? = null) :
+open class InternalErrorException(data: Any? = null) :
     JsonRpcException(ErrorCode.INTERNAL_ERROR.toError(data))

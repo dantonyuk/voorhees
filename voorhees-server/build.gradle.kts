@@ -11,7 +11,7 @@ tasks.withType<KotlinCompile> {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation(project(":voorhees-core"))
+    api(project(":voorhees-core"))
 
     compileOnly("javax.servlet:javax.servlet-api:4.0.1")
     compileOnly("com.fasterxml.jackson.core:jackson-core:2.9.9")
