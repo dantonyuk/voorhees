@@ -54,7 +54,7 @@ public class JsonRpcConfiguration {
 ## Services
 
 A service in Voorhees is just a simple class marked as
-[`@JsonRpcService`](voorhees-server/src/main/kotlin/com/hylamobile/voorhees/server/annotations/JsonRpcService.kt):
+[`@JsonRpcService`](voorhees-server/src/main/kotlin/com/hylamobile/voorhees/server/annotation/JsonRpcService.kt):
 
 ```java
 @JsonRpcService(location = "/my")
@@ -81,7 +81,7 @@ All the public methods of this service class (but not its' superclasses)
 will be exposed.
 
 If you want to suppress exposing specific method, annotate it with
-[`@DontExpose`](voorhees-server/src/main/kotlin/com/hylamobile/voorhees/server/annotations/DontExpose.kt).
+[`@DontExpose`](voorhees-server/src/main/kotlin/com/hylamobile/voorhees/server/annotation/DontExpose.kt).
 
 ```java
 @JsonRpcService(location = "/my")
@@ -107,7 +107,7 @@ be used in order to get parameter names. And this is exactly what Spring
 parameter name discoverer does. Voorhees uses it to find these names.
 
 But there is also other way to name the parameters: Use `name` attribute
-of the [`@Param`](voorhees-server/src/main/kotlin/com/hylamobile/voorhees/server/annotations/Param.kt)
+of the [`@Param`](voorhees-server/src/main/kotlin/com/hylamobile/voorhees/server/annotation/Param.kt)
 annotation:
 
 ```java

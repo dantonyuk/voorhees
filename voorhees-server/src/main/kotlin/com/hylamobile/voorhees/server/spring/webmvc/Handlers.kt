@@ -1,8 +1,9 @@
 package com.hylamobile.voorhees.server.spring.webmvc
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.hylamobile.voorhees.jsonrpc.*
-import com.hylamobile.voorhees.server.annotations.optionDefaultValue
-import com.hylamobile.voorhees.server.annotations.paramAnno
+import com.hylamobile.voorhees.server.annotation.optionDefaultValue
+import com.hylamobile.voorhees.server.annotation.paramAnno
 import com.hylamobile.voorhees.util.Option
 import com.hylamobile.voorhees.util.toArray
 import org.springframework.core.DefaultParameterNameDiscoverer
@@ -104,7 +105,11 @@ class JsonRpcMethodHandler(private val bean: Any, private val method: Method) : 
     }
 
     private fun convertToArguments(params: Params?): Array<Any?> {
-        fun nulls() = sequence { while (true) yield(null) }
+        fun nulls() =
+            object : Iterator<JsonNode?> {
+                override fun hasNext(): Boolean = true
+                override fun next(): JsonNode? = null
+            }.asSequence()
 
         val jsonValues = when (params) {
             null -> nulls()

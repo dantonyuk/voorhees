@@ -1,4 +1,4 @@
-package com.hylamobile.voorhees.server.annotations
+package com.hylamobile.voorhees.server.annotation
 
 import com.hylamobile.voorhees.util.Option
 import org.springframework.web.bind.annotation.ValueConstants.DEFAULT_NONE

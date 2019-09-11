@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.3.41"
+    kotlin("jvm") version "1.3.50"
     id("org.jetbrains.dokka") version "0.9.17"
 }
 
@@ -10,7 +10,6 @@ tasks.withType<KotlinCompile> {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
     api(project(":voorhees-core"))
 
     compileOnly("javax.servlet:javax.servlet-api:4.0.1")

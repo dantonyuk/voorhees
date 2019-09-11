@@ -46,7 +46,11 @@ open class JsonRpcClient(private val serverConfig: ServerConfig) {
                 object : ParameterizedType {
                     override fun getRawType(): Type = Response::class.java
                     override fun getOwnerType(): Type? = null
-                    override fun getActualTypeArguments(): Array<Type> = arrayOf(method.genericReturnType)
+                    override fun getActualTypeArguments(): Array<Type> = arrayOf(
+                        when (val retType = method.genericReturnType) {
+                            Void.TYPE -> Object::class.java
+                            else -> retType
+                        })
                 }
 
             // for debugger

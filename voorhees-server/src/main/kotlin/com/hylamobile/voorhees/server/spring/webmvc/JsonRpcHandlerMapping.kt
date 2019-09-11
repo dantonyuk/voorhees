@@ -2,8 +2,8 @@ package com.hylamobile.voorhees.server.spring.webmvc
 
 import com.hylamobile.voorhees.jsonrpc.ErrorCode
 import com.hylamobile.voorhees.jsonrpc.Request
-import com.hylamobile.voorhees.server.annotations.DontExpose
-import com.hylamobile.voorhees.server.annotations.JsonRpcService
+import com.hylamobile.voorhees.server.annotation.DontExpose
+import com.hylamobile.voorhees.server.annotation.JsonRpcService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.Ordered
 import org.springframework.http.InvalidMediaTypeException

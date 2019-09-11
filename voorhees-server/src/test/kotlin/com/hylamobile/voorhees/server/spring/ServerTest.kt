@@ -1,9 +1,9 @@
 package com.hylamobile.voorhees.server.spring
 
 import com.hylamobile.voorhees.jsonrpc.InternalErrorException
-import com.hylamobile.voorhees.server.annotations.DontExpose
-import com.hylamobile.voorhees.server.annotations.JsonRpcService
-import com.hylamobile.voorhees.server.annotations.Param
+import com.hylamobile.voorhees.server.annotation.DontExpose
+import com.hylamobile.voorhees.server.annotation.JsonRpcService
+import com.hylamobile.voorhees.server.annotation.Param
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity

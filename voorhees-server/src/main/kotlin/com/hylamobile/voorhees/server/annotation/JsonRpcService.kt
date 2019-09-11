@@ -1,4 +1,4 @@
-package com.hylamobile.voorhees.server.annotations
+package com.hylamobile.voorhees.server.annotation
 
 import org.springframework.stereotype.Component
 

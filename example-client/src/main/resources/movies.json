@@ -1,0 +1,50 @@
+[
+  {
+    "title":"The Shawshank Redemption",
+    "year":"1994",
+    "directors":[{"name": "Frank Darabont"}],
+    "writers":[{"name": "Stephen King"}, {"name": "Frank Darabont"}],
+    "stars":[{"name": "Tim Robbins"}, {"name": "Morgan Freeman"}, {"name": "Bob Gunton"}, {"name": "William Sadler"}],
+    "description":"Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency."
+  },
+  {
+    "title":"The Godfather",
+    "year":"1972",
+    "directors":[{"name": "Francis Ford Coppola"}],
+    "writers":[{"name": "Mario Puzo"}, {"name": "Francis Ford Coppola"}],
+    "stars":[{"name": "Marlon Brando"}, {"name": "Al Pacino"}, {"name": "James Caan"}, {"name": "Richard S. Castellano"}],
+    "description":"The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son."
+  },
+  {
+    "title":"The Dark Knight",
+    "year":"2008",
+    "directors":[{"name": "Christopher Nolan"}],
+    "writers":[{"name": "Jonathan Nolan"}, {"name": "Christopher Nolan"}, {"name": "David S. Goyer"}, {"name": "Bob Kane"}],
+    "stars":[{"name": "Christian Bale"}, {"name": "Heath Ledger"}, {"name": "Aaron Eckhart"}, {"name": "Michael Caine"}],
+    "description":"When the menace known as The Joker emerges from his mysterious past, he wreaks havoc and chaos on the people of Gotham. The Dark Knight must accept one of the greatest psychological and physical tests of his ability to fight injustice."
+  },
+  {
+    "title":"The Godfather: Part II",
+    "year":"1974",
+    "directors":[{"name": "Francis Ford Coppola"}],
+    "writers":[{"name": "Francis Ford Coppola"}, {"name": "Mario Puzo"}],
+    "stars":[{"name": "Al Pacino"}, {"name": "Robert Duvall"}, {"name": "Diane Keaton"}, {"name": "Robert De Niro"}],
+    "description":"The early life and career of Vito Corleone in 1920s New York City is portrayed, while his son, Michael, expands and tightens his grip on the family crime syndicate."
+  },
+  {
+    "title":"The Lord of the Rings: The Return of the King",
+    "year":"2003",
+    "directors":[{"name": "Peter Jackson"}],
+    "writers":[{"name": "J.R.R. Tolkien"}, {"name": "Fran Walsh"}, {"name": "Philippa Boyens"}, {"name": "Peter Jackson"}],
+    "stars":[{"name": "Noel Appleby"}, {"name": "Ali Astin"}, {"name": "Sean Astin"}, {"name": "David Aston"}],
+    "description":"Gandalf and Aragorn lead the World of Men against Sauron's army to draw his gaze from Frodo and Sam as they approach Mount Doom with the One Ring."
+  },
+  {
+    "title":"Pulp Fiction",
+    "year":"1994",
+    "directors":[{"name": "Quentin Tarantino"}],
+    "writers":[{"name": "Quentin Tarantino"}, {"name": "Roger Avary"}],
+    "stars":[{"name": "Tim Roth"}, {"name": "Amanda Plummer"}, {"name": "Laura Lovelace"}, {"name": "John Travolta"}],
+    "description":"The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption."
+  }
+]

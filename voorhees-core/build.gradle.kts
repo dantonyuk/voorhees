@@ -1,8 +1,9 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.3.41"
+    kotlin("jvm") version "1.3.50"
     id("org.jetbrains.dokka") version "0.9.17"
+    id("maven")
 }
 
 tasks.withType<KotlinCompile> {
@@ -10,7 +11,7 @@ tasks.withType<KotlinCompile> {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
+    api(kotlin("stdlib", "1.3.50"))
 
     compileOnly("javax.servlet:javax.servlet-api:4.0.1")
     compileOnly("com.fasterxml.jackson.core:jackson-core:2.9.9")
