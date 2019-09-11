@@ -10,9 +10,11 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.util.Base64Utils
 
 @RunWith(SpringRunner::class)
 @SpringBootTest
@@ -407,4 +409,90 @@ class TestServiceTest {
             .andExpect(jsonPath("id").value(`is`(1)))
             .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
     }
+
+    @Test
+    fun `Null should be parsed as default values`() {
+        val request = Request("checkNullDefaultValues", null, NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(request.jsonString))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("result").value(`is`(true)))
+            .andExpect(jsonPath("error").value(nullValue()))
+            .andExpect(jsonPath("id").value(`is`(1)))
+            .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
+    }
+
+    @Test
+    fun `Null should be parsed as default values if parameters are positional`() {
+        val request = Request("checkNullDefaultValues", ByPositionParams(), NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(request.jsonString))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("result").value(`is`(true)))
+            .andExpect(jsonPath("error").value(nullValue()))
+            .andExpect(jsonPath("id").value(`is`(1)))
+            .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
+    }
+
+    @Test
+    fun `Null should be parsed as default values if parameters are named`() {
+        val request = Request("checkNullDefaultValues", ByNameParams(), NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(request.jsonString))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("result").value(`is`(true)))
+            .andExpect(jsonPath("error").value(nullValue()))
+            .andExpect(jsonPath("id").value(`is`(1)))
+            .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
+    }
+
+    @Test
+    fun `Secured endpoint should fail for anonymous`() {
+        val request = Request("secret", null, NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/secured")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(request.jsonString))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    fun `Secured endpoint should fail for unauthorized users`() {
+        val request = Request("secret", null, NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/secured").basicAuth("user", "password")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(request.jsonString))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `Secured endpoint should succeed for admins`() {
+        val request = Request("secret", null, NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/secured").basicAuth("admin", "password")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(request.jsonString))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("result").value(`is`("password")))
+            .andExpect(jsonPath("error").value(nullValue()))
+            .andExpect(jsonPath("id").value(`is`(1)))
+            .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
+    }
+
+    fun MockHttpServletRequestBuilder.basicAuth(username: String, password: String): MockHttpServletRequestBuilder =
+        header("Authorization",
+            "Basic ${Base64Utils.encodeToString("$username:$password".toByteArray(Charsets.UTF_8))}")
 }

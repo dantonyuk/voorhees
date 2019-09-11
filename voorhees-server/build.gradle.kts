@@ -26,6 +26,8 @@ dependencies {
     testImplementation("org.springframework:spring-webmvc:5.1.9.RELEASE")
     testImplementation("org.springframework.boot:spring-boot-starter-test:2.1.6.RELEASE")
     testImplementation("org.springframework.boot:spring-boot-starter-web:2.1.7.RELEASE")
+    testImplementation("org.springframework.security:spring-security-config:5.1.6.RELEASE")
+    testImplementation("org.springframework.security:spring-security-test:5.1.6.RELEASE")
 }
 
 tasks.dokka {
