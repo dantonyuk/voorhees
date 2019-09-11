@@ -27,7 +27,7 @@ class TestServiceTest {
     @Test
     fun `call method with positional parameters should succeed`() {
         val request = Request("plus", ByPositionParams(3, 4), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -43,7 +43,7 @@ class TestServiceTest {
     @Test
     fun `call method with named parameters should succeed`() {
         val request = Request("plus", ByNameParams("l" to 3, "r" to 4), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -58,7 +58,7 @@ class TestServiceTest {
     @Test
     fun `call of explicitly named parameters method with positional parameters should succeed`() {
         val request = Request("replicate", ByPositionParams("test", 3), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -74,7 +74,7 @@ class TestServiceTest {
     @Test
     fun `call of explicitly named parameters method with named parameters should succeed`() {
         val request = Request("replicate", ByNameParams("str" to "test", "times" to 3), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -89,7 +89,7 @@ class TestServiceTest {
     @Test
     fun `call of default-parameters method with unspecified parameter should succeed`() {
         val request = Request("replicate", ByNameParams("str" to "test"), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -104,7 +104,7 @@ class TestServiceTest {
     @Test
     fun `call of default-parameters method with null parameters should succeed`() {
         val request = Request("replicate", null, NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -119,7 +119,7 @@ class TestServiceTest {
     @Test
     fun `call of default-parameters method with empty positional parameters should succeed`() {
         val request = Request("replicate", ByPositionParams(), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -134,7 +134,7 @@ class TestServiceTest {
     @Test
     fun `call of default-parameters method with empty named parameters should succeed`() {
         val request = Request("replicate", ByNameParams(), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -149,7 +149,7 @@ class TestServiceTest {
     @Test
     fun `call of default-parameters method with short parameter list should succeed`() {
         val request = Request("replicate", ByPositionParams("test"), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -164,7 +164,7 @@ class TestServiceTest {
     @Test
     fun `call with null as parameters should succeed`() {
         val request = Request("theAnswer", null, NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -179,7 +179,7 @@ class TestServiceTest {
     @Test
     fun `call with empty positional parameters should succeed`() {
         val request = Request("theAnswer", ByPositionParams(), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -194,7 +194,7 @@ class TestServiceTest {
     @Test
     fun `call with empty named parameters should succeed`() {
         val request = Request("theAnswer", ByNameParams(), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -209,7 +209,7 @@ class TestServiceTest {
     @Test
     fun `call of absent method should fail`() {
         val request = Request("noSuchMethod", null, NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -226,7 +226,7 @@ class TestServiceTest {
     @Test
     fun `call with insufficient amount of positional parameters should fail`() {
         val request = Request("plus", ByPositionParams(3), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -243,7 +243,7 @@ class TestServiceTest {
     @Test
     fun `call with insufficient amount of named parameters should fail`() {
         val request = Request("plus", ByNameParams("l" to 3), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -260,7 +260,7 @@ class TestServiceTest {
     @Test
     fun `call with too many positional parameters should fail`() {
         val request = Request("plus", ByPositionParams(3, 4, 5), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -277,7 +277,7 @@ class TestServiceTest {
     @Test
     fun `call with too many named parameters should fail`() {
         val request = Request("plus", ByNameParams("l" to 3, "r" to 4, "m" to 5), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -294,7 +294,7 @@ class TestServiceTest {
     @Test
     fun `internal error should be handled`() {
         val request = Request("breakALeg", null, NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -311,7 +311,7 @@ class TestServiceTest {
     @Test
     fun `custom error should be handled`() {
         val request = Request("breakAnArm", null, NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -328,7 +328,7 @@ class TestServiceTest {
     @Test
     fun `@DontExpose methods should not be exposed`() {
         val request = Request("unexposed", null, NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -347,7 +347,7 @@ class TestServiceTest {
         val person = Person("johnny", 20)
 
         val request = Request("birthday", ByPositionParams(person), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -364,7 +364,7 @@ class TestServiceTest {
         val person = Person("johnny", 20)
 
         val request = Request("birthday", ByNameParams("person" to person), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -381,7 +381,7 @@ class TestServiceTest {
         val person = Person("johnny", 20)
 
         val request = Request("birthdays", ByPositionParams(listOf(person)), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -398,7 +398,7 @@ class TestServiceTest {
         val person = Person("johnny", 20)
 
         val request = Request("birthdays", ByNameParams("people" to listOf(person)), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(request.jsonString))
@@ -413,7 +413,7 @@ class TestServiceTest {
     @Test
     fun `Null should be parsed as default values`() {
         val request = Request("checkNullDefaultValues", null, NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
             .contentType(MediaType.APPLICATION_JSON_UTF8)
             .accept(MediaType.APPLICATION_JSON)
             .content(request.jsonString))
@@ -428,7 +428,7 @@ class TestServiceTest {
     @Test
     fun `Null should be parsed as default values if parameters are positional`() {
         val request = Request("checkNullDefaultValues", ByPositionParams(), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
             .contentType(MediaType.APPLICATION_JSON_UTF8)
             .accept(MediaType.APPLICATION_JSON)
             .content(request.jsonString))
@@ -443,7 +443,7 @@ class TestServiceTest {
     @Test
     fun `Null should be parsed as default values if parameters are named`() {
         val request = Request("checkNullDefaultValues", ByNameParams(), NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/test")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
             .contentType(MediaType.APPLICATION_JSON_UTF8)
             .accept(MediaType.APPLICATION_JSON)
             .content(request.jsonString))
@@ -458,7 +458,7 @@ class TestServiceTest {
     @Test
     fun `Secured endpoint should fail for anonymous`() {
         val request = Request("secret", null, NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/secured")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/secured")
             .contentType(MediaType.APPLICATION_JSON_UTF8)
             .accept(MediaType.APPLICATION_JSON)
             .content(request.jsonString))
@@ -469,7 +469,7 @@ class TestServiceTest {
     @Test
     fun `Secured endpoint should fail for unauthorized users`() {
         val request = Request("secret", null, NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/secured").basicAuth("user", "password")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/secured").basicAuth("user", "password")
             .contentType(MediaType.APPLICATION_JSON_UTF8)
             .accept(MediaType.APPLICATION_JSON)
             .content(request.jsonString))
@@ -480,7 +480,7 @@ class TestServiceTest {
     @Test
     fun `Secured endpoint should succeed for admins`() {
         val request = Request("secret", null, NumberId(1))
-        mockMvc.perform(MockMvcRequestBuilders.post("/secured").basicAuth("admin", "password")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/secured").basicAuth("admin", "password")
             .contentType(MediaType.APPLICATION_JSON_UTF8)
             .accept(MediaType.APPLICATION_JSON)
             .content(request.jsonString))

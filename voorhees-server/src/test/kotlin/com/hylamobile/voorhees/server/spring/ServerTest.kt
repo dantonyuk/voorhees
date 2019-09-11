@@ -57,7 +57,7 @@ open class WebSecurityConfig : WebSecurityConfigurerAdapter() {
         http
             .csrf().disable()
             .authorizeRequests()
-                .antMatchers("/secured").hasRole("ADMIN")
+                .antMatchers("/api/secured").hasRole("ADMIN")
                 .anyRequest().permitAll().and()
             .httpBasic()
     }
