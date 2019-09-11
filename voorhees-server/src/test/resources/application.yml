@@ -1,0 +1,5 @@
+spring:
+  voorhees:
+    server:
+      api:
+        prefix: /api

@@ -12,6 +12,7 @@ services in Spring applications in a quite fast and seamless way.
   * [Services](#services)
     * [Named Parameters](#named-parameters)
     * [Default Values](#default-values)
+    * [Endpoint Prefix](#endpoint-prefix)
   * [Client (Java)](#client-java)
   * [Client (Python)](#client-python)
   * [Exception Handling](#exception-handling)
@@ -159,6 +160,24 @@ Note that default values are strings keeping JSON representation of the
 default value. The only exception is string value. So if Voorhees is not
 able to parse default value, it uses it as is if the type of the
 parameter is String.
+
+### Endpoint Prefix
+
+In order to specify the common API prefix for all JSON RPC services use
+`spring.voorhees.server.api.prefix` Spring property:
+
+```yaml
+spring:
+  voorhees:
+    server:
+      api:
+        prefix: /api
+```
+
+Note that it should start with slash or be an empty string.
+
+For example, if prefix is `/api` and service location is `/my` then the
+real enspoint is going to be `/api/my`.
 
 ## Client (Java)
 
