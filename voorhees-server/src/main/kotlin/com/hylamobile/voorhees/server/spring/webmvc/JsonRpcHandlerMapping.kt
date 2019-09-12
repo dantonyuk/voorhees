@@ -4,6 +4,7 @@ import com.hylamobile.voorhees.jsonrpc.ErrorCode
 import com.hylamobile.voorhees.jsonrpc.Request
 import com.hylamobile.voorhees.server.annotation.DontExpose
 import com.hylamobile.voorhees.server.annotation.JsonRpcService
+import com.hylamobile.voorhees.util.uriCombine
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.Ordered
 import org.springframework.http.InvalidMediaTypeException
@@ -12,16 +13,22 @@ import org.springframework.web.servlet.handler.AbstractHandlerMapping
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 
+typealias ServiceMethods = List<JsonRpcMethodHandler>
+typealias ServiceDescriptor = Map<String, ServiceMethods>
+
 class JsonRpcHandlerMapping : AbstractHandlerMapping() {
 
     @Value("\${spring.voorhees.server.handler-mapping.order:-2147483648}")
     private var _order: Int = Ordered.HIGHEST_PRECEDENCE
 
-    private lateinit var handlers: Map<String, Map<String, List<JsonRpcMethodHandler>>>
+    @Value("\${spring.voorhees.server.api.prefix:}")
+    private var apiPrefix: String = ""
+
+    private lateinit var serviceDescriptors: Map<String, ServiceDescriptor>
 
     @PostConstruct
     fun init() {
-        handlers = (applicationContext ?: throw IllegalStateException("Should not be thrown"))
+        serviceDescriptors = (applicationContext ?: throw IllegalStateException("Should not be thrown"))
             .getBeansWithAnnotation(JsonRpcService::class.java)
             .values
             .flatMap { bean ->
@@ -32,7 +39,7 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
                     .mapValues { it.value.map { m -> JsonRpcMethodHandler(bean, m) }}
 
                 val jsonRpcAnno = clazz.getAnnotation(JsonRpcService::class.java)
-                jsonRpcAnno.locations.map { it to handlerInfos }
+                jsonRpcAnno.locations.map { loc -> uriCombine(apiPrefix, loc) to handlerInfos }
             }
             .toMap()
     }
@@ -57,7 +64,7 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
     }
 
     private fun findHandler(httpRequest: HttpServletRequest): JsonRpcHandler? {
-        val serviceMethods = handlers[httpRequest.realPath] ?: return null
+        val serviceMethods = serviceDescriptors[httpRequest.realPath] ?: return null
 
         val jsonRequest: Request = httpRequest.jsonRequest
 

@@ -6,6 +6,7 @@ import com.github.kittinunf.fuel.httpPost
 import com.hylamobile.voorhees.client.annotation.JsonRpcService
 import com.hylamobile.voorhees.client.annotation.Param
 import com.hylamobile.voorhees.jsonrpc.*
+import com.hylamobile.voorhees.util.uriCombine
 import java.lang.reflect.*
 import java.nio.charset.Charset
 
@@ -30,9 +31,8 @@ open class JsonRpcClient(private val serverConfig: ServerConfig) {
 
     @Suppress("UNCHECKED_CAST")
     fun <T> getService(location: String, type: Class<T>): T {
-        val url = serverConfig.url + if (serverConfig.url.endsWith("/")) "" else "/"
-        val loc = if (location.startsWith("/")) location.substring(1) else location
-        return Proxy.newProxyInstance(type.classLoader, arrayOf(type), ServiceProxy(url + loc)) as T
+        val path = uriCombine(serverConfig.url, location)
+        return Proxy.newProxyInstance(type.classLoader, arrayOf(type), ServiceProxy(path)) as T
     }
 
     open fun updateOptions(options: RequestExecutionOptions) {
