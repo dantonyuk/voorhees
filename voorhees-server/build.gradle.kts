@@ -1,10 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-plugins {
-    kotlin("jvm") version "1.3.50"
-    id("org.jetbrains.dokka") version "0.9.17"
-}
-
 tasks.withType<KotlinCompile> {
     kotlinOptions.javaParameters = true
 }
@@ -27,9 +22,4 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-web:2.1.7.RELEASE")
     testImplementation("org.springframework.security:spring-security-config:5.1.6.RELEASE")
     testImplementation("org.springframework.security:spring-security-test:5.1.6.RELEASE")
-}
-
-tasks.dokka {
-    outputFormat = "html"
-    outputDirectory = "$buildDir/javadoc"
 }
