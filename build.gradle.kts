@@ -23,4 +23,17 @@ subprojects {
         outputFormat = "html"
         outputDirectory = "$buildDir/javadoc"
     }
+
+    val dokkaJar by tasks.creating(Jar::class) {
+        group = JavaBasePlugin.DOCUMENTATION_GROUP
+        description = "Assembles Kotlin docs with Dokka"
+        archiveClassifier.set("javadoc")
+        from(tasks.dokka)
+        dependsOn(tasks.dokka)
+    }
+
+    val sourcesJar by tasks.creating(Jar::class) {
+        archiveClassifier.set("sources")
+        from(sourceSets.getByName("main").allSource)
+    }
 }
