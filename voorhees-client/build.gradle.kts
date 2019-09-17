@@ -1,10 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-plugins {
-    kotlin("jvm") version "1.3.50"
-    id("org.jetbrains.dokka") version "0.9.17"
-}
-
 tasks.withType<KotlinCompile> {
     kotlinOptions.javaParameters = true
 }
@@ -25,9 +20,4 @@ dependencies {
     testImplementation("com.fasterxml.jackson.core:jackson-annotations:2.9.9")
     testImplementation("com.fasterxml.jackson.core:jackson-databind:2.9.9")
     testImplementation("org.springframework:spring-webmvc:5.1.9.RELEASE")
-}
-
-tasks.dokka {
-    outputFormat = "html"
-    outputDirectory = "$buildDir/javadoc"
 }

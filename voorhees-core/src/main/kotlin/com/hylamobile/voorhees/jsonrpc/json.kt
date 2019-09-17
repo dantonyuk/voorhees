@@ -13,7 +13,7 @@ import java.io.Writer
 import java.lang.reflect.Type
 import com.fasterxml.jackson.databind.ObjectMapper
 
-class JsonRpcIdSerializer : StdSerializer<Id<*>>(Id::class.java) {
+private class JsonRpcIdSerializer : StdSerializer<Id<*>>(Id::class.java) {
 
     override fun serialize(value: Id<*>?, gen: JsonGenerator, provider: SerializerProvider?) {
         when (value) {
@@ -24,7 +24,7 @@ class JsonRpcIdSerializer : StdSerializer<Id<*>>(Id::class.java) {
     }
 }
 
-class JsonRpcIdDeserializer : StdDeserializer<Id<*>>(Id::class.java) {
+private class JsonRpcIdDeserializer : StdDeserializer<Id<*>>(Id::class.java) {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Id<*>? {
         return when (val parsed = p.readValueAsTree<TreeNode>()) {
@@ -37,7 +37,7 @@ class JsonRpcIdDeserializer : StdDeserializer<Id<*>>(Id::class.java) {
     }
 }
 
-class VersionSerializer : StdSerializer<Version>(Version::class.java) {
+private class VersionSerializer : StdSerializer<Version>(Version::class.java) {
 
     override fun serialize(value: Version?, gen: JsonGenerator, provider: SerializerProvider?) {
         require (value != null) { "Version should be defined" }
@@ -47,7 +47,7 @@ class VersionSerializer : StdSerializer<Version>(Version::class.java) {
     }
 }
 
-class VersionDeserializer : StdDeserializer<Version>(Version::class.java) {
+private class VersionDeserializer : StdDeserializer<Version>(Version::class.java) {
 
     private val nodeVer2_0 = TextNode.valueOf("2.0")
 
@@ -63,7 +63,7 @@ class VersionDeserializer : StdDeserializer<Version>(Version::class.java) {
     }
 }
 
-class ParamsSerializer : StdSerializer<Params>(Params::class.java) {
+private class ParamsSerializer : StdSerializer<Params>(Params::class.java) {
 
     override fun serialize(value: Params?, gen: JsonGenerator, provider: SerializerProvider?) {
         val data: Any? = when (value) {
@@ -75,7 +75,7 @@ class ParamsSerializer : StdSerializer<Params>(Params::class.java) {
     }
 }
 
-class ParamsDeserializer : StdDeserializer<Params>(Params::class.java) {
+private class ParamsDeserializer : StdDeserializer<Params>(Params::class.java) {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Params? {
         return when (val node = p.readValueAsTree<JsonNode>()) {
@@ -87,7 +87,7 @@ class ParamsDeserializer : StdDeserializer<Params>(Params::class.java) {
     }
 }
 
-class ErrorDeserializer : StdDeserializer<Error>(Error::class.java) {
+private class ErrorDeserializer : StdDeserializer<Error>(Error::class.java) {
 
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext?): Error? {
         return when (val node = p.readValueAsTree<JsonNode>()) {
@@ -112,8 +112,11 @@ private val objectMapper = ObjectMapper().
             .addDeserializer(Params::class.java, ParamsDeserializer())
             .addDeserializer(Error::class.java, ErrorDeserializer()))
 
-val Any.jsonString
+val Any?.jsonString
     get() = objectMapper.writeValueAsString(this)
+
+val Any?.jsonTree: JsonNode
+    get() = objectMapper.valueToTree(this) ?: NullNode.instance
 
 fun Reader.readRequest(): Request =
     objectMapper.readValue(this, Request::class.java)
@@ -124,9 +127,6 @@ fun Writer.writeResponse(response: Response<*>) =
 fun String.parseRequest(): Request = parseJsonAs(Request::class.java) as Request
 
 fun String.parseResponse(): Response<*> = parseJsonAs(Response::class.java) as Response<*>
-
-fun Any?.toJsonTree(): JsonNode =
-    objectMapper.valueToTree(this) ?: NullNode.instance
 
 fun String.parseJsonAs(type: Type): Any? {
     val javaType = objectMapper.typeFactory.constructType(type)
