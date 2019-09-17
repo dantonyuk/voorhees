@@ -21,6 +21,8 @@ subprojects {
     apply(plugin = "org.gradle.maven-publish")
     apply(plugin = "org.gradle.signing")
 
+    version = "1.0.0"
+
     tasks.dokka {
         outputFormat = "html"
         outputDirectory = "$buildDir/javadoc"
