@@ -72,7 +72,7 @@ open class JsonRpcClient(private val serverConfig: ServerConfig) {
 
             fun Parameter.paramAnno() = getAnnotation(Param::class.java)
 
-            fun <T> Array<out T?>.asJsonSeq() = asSequence().map(Any?::toJsonTree)
+            fun <T> Array<out T?>.asJsonSeq() = asSequence().map(Any?::jsonTree)
 
             fun onlyNamedParameters() = method.parameters.all { it.paramAnno() != null }
 

@@ -112,8 +112,11 @@ private val objectMapper = ObjectMapper().
             .addDeserializer(Params::class.java, ParamsDeserializer())
             .addDeserializer(Error::class.java, ErrorDeserializer()))
 
-val Any.jsonString
+val Any?.jsonString
     get() = objectMapper.writeValueAsString(this)
+
+val Any?.jsonTree: JsonNode
+    get() = objectMapper.valueToTree(this) ?: NullNode.instance
 
 fun Reader.readRequest(): Request =
     objectMapper.readValue(this, Request::class.java)
@@ -124,9 +127,6 @@ fun Writer.writeResponse(response: Response<*>) =
 fun String.parseRequest(): Request = parseJsonAs(Request::class.java) as Request
 
 fun String.parseResponse(): Response<*> = parseJsonAs(Response::class.java) as Response<*>
-
-fun Any?.toJsonTree(): JsonNode =
-    objectMapper.valueToTree(this) ?: NullNode.instance
 
 fun String.parseJsonAs(type: Type): Any? {
     val javaType = objectMapper.typeFactory.constructType(type)

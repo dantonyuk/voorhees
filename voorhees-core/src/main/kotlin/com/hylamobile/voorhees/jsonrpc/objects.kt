@@ -4,14 +4,31 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.JsonNode
 
+/**
+ * JSON RPC version
+ *
+ * The only 2.0 version is supported.
+ *
+ * @property version String representation of the version object
+ */
 class Version private constructor(val version: String) {
     companion object {
+        /**
+         * [ver2_0] is used as a prototype to prevent creating similar
+         * objects during JSON parsing.
+         */
         val ver2_0 = Version("2.0")
     }
 
+    /**
+     * @suppress
+     */
     override fun equals(other: Any?): Boolean =
         other is Version && other.version == version
 
+    /**
+     * @suppress
+     */
     override fun hashCode(): Int = version.hashCode()
 }
 
@@ -31,14 +48,14 @@ sealed class Params
 
 data class ByPositionParams(val params: List<JsonNode>) : Params() {
     constructor(vararg nodes: Any?) :
-        this(nodes.asSequence().map(Any?::toJsonTree).toList())
+        this(nodes.asSequence().map(Any?::jsonTree).toList())
 
     override fun toString(): String = params.toString()
 }
 
 data class ByNameParams constructor(val params: Map<String, JsonNode>) : Params() {
     constructor(vararg nodes: Pair<String, Any?>) :
-        this(nodes.asSequence().map { (k, v) -> k to v.toJsonTree() }.toMap())
+        this(nodes.asSequence().map { (k, v) -> k to v.jsonTree }.toMap())
 
     override fun toString(): String = params.toString()
 }
