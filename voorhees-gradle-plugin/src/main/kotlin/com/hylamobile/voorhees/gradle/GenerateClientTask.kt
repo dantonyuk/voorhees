@@ -26,6 +26,6 @@ open class GenerateClientTask : DefaultTask() {
             .map { it.toURI().toURL() }
             .toTypedArray()
 
-        ClientGenerator(extension.packageToScan, classPath, genDir).generate()
+        ClientGenerator(extension.packagesToScan, classPath, genDir).generate()
     }
 }

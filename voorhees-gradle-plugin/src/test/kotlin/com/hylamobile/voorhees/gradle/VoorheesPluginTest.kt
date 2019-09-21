@@ -32,7 +32,7 @@ class VoorheesPluginTest {
             version = "0.0.1"
 
             voorhees {
-                packageToScan = "com.hylamobile"
+                packagesToScan = ["com.hylamobile"]
                 artifact = "voorhees-plugin-test-client"
             }
             
@@ -42,6 +42,7 @@ class VoorheesPluginTest {
             
             repositories {
                 jcenter()
+                mavenLocal()
                 maven {
                     url mavenRepoUrl
                     credentials {
