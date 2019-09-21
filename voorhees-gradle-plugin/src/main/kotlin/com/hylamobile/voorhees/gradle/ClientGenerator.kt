@@ -14,7 +14,7 @@ import java.net.URL
 import java.net.URLClassLoader
 
 class ClientGenerator(
-    private val packageToScan: String,
+    private val packagesToScan: Array<String>,
     private val classPath: Array<URL>,
     private val genDir: File) {
 
@@ -34,11 +34,11 @@ class ClientGenerator(
 
     fun generate() {
         val buildClassLoader = URLClassLoader(classPath, ClasspathHelper.contextClassLoader())
-        val serviceClasses = Reflections(packageToScan, buildClassLoader)
+        val serviceClasses = Reflections(packagesToScan, buildClassLoader)
             .getTypesAnnotatedWith(ServerJsonRpcService::class.java)
 
         for (serviceClass in serviceClasses) {
-            val location = serviceClass.getAnnotation(ServerJsonRpcService::class.java).locations.get(0)
+            val location = serviceClass.getAnnotation(ServerJsonRpcService::class.java).locations[0]
             val jsonRpcServiceAnno = AnnotationDescription.Builder
                 .ofType(ClientJsonRpcService::class.java)
                 .define("location", location)
@@ -78,7 +78,7 @@ class ClientGenerator(
         when (type) {
             is Class<*> -> when {
                 type.isArray -> classesFrom(type.componentType)
-                type.name.startsWith(packageToScan) -> {
+                packagesToScan.any { p -> type.name.startsWith(p) } -> {
                     classesToGenerate.add(type)
                     classesFrom(type.genericSuperclass)
                     type.genericInterfaces.forEach(this::classesFrom)
