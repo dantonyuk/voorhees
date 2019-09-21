@@ -12,7 +12,7 @@ allprojects {
     }
 
     group = "com.hylamobile"
-    version = "1.0.0"
+    version = "2.0.0"
 }
 
 subprojects {
@@ -21,7 +21,7 @@ subprojects {
     apply(plugin = "org.gradle.maven-publish")
     apply(plugin = "org.gradle.signing")
 
-    version = "1.0.0"
+    version = "2.0.0"
 
     tasks.dokka {
         outputFormat = "html"
