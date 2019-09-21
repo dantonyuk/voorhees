@@ -18,6 +18,8 @@ services in Spring applications in a quite fast and seamless way.
   * [Exception Handling](#exception-handling)
     * [JSON RPC Specific Errors](#json-rpc-specific-errors)
     * [User Defined Errors](#user-defined-errors)
+  * [Client library generation](#client-library-generation)
+    * [Groovy plugin](#groovy-plugin)
 
 ## Installation
 
@@ -247,3 +249,95 @@ To be updated
 ### User Defined Errors
 
 To be updated
+
+## Client Library Generation
+
+Currently it's possible to generate client library instead of
+implementing it manually.
+
+### Groovy plugin
+
+Voorhees groovy plugin provides a possibility to generate client
+library, install it to local maven repository or publish to remote one.
+
+Apply `voorhees` in build.gradle. If you want to publish client library
+apply `maven-publish` plugin as well. For example:
+```groovy
+plugins {
+	id "java"
+	id "maven-publish"
+	id "voorhees"
+}
+```
+
+Define where you want the plugin to search for remote services in
+`packagesToScan` attribute of `voorhees` extension. If you intend to
+publish client library, you want to define `artifact` as well as
+`group` and `version`. Note that if `group` and `version` are not
+defined (as in example below) then `group` and `version` of the current
+project will be used:
+```groovy
+group = "com.acme"
+version = "0.0.1"
+
+voorhees {
+	packagesToScan = ["com.acme.remote"]
+	artifact = "myservice-client"
+}
+```
+
+Since your application uses `voorhees-server` it should be defined in
+dependencies:
+```groovy
+dependencies {
+	compile("com.hylamobile:voorhees-server:2.0.0")
+	// other deps: spring etc.
+}
+```
+
+Currently plugin is not yet deployed to public repositories, so please
+use your own as in example below:
+```groovy
+repositories {
+	jcenter()
+	maven {
+		url mavenRepoUrl
+		credentials {
+			username mavenRepoUsername
+			password mavenRepoPassword
+		}
+	}
+}
+```
+
+Same for publishing. Just use the repository you want to publish client
+library to. Currently only maven repository is supported:
+```groovy
+publishing {
+	repositories {
+		// repository to publish client library
+		maven {
+			url mavenRepoUrl
+			credentials {
+				username mavenRepoUsername
+				password mavenRepoPassword
+			}
+		}
+	}
+}
+
+```
+
+Task provided by the plugin:
+
+* **generateJsonRpcClient** Generates classes in `build/classes/voorhees` directory.
+* **jarJsonRpcClient** Archives generated classes to a jar in `build/libs`.
+* **publishJsonRpcClient** (only if `maven-publish` is active) Publishes generated jar to maven repository.
+
+Apart from that, `maven-publish` itself creates
+`publishJsonRpcClientPublicationToMavenLocal` and
+`publishJsonRpcClientPublicationToMavenRepository`.
+
+Please note that only classes from the packages mentioned in
+`packagesToScan` attribute and their subpackages (recursively) will be
+generated for client library.
