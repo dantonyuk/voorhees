@@ -15,24 +15,26 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
 
-const val CLIENT_NAME = "JsonRpcClient"
-
-private fun capitalize(s: String) =
-    s[0].toUpperCase() + s.substring(1)
-
+@Suppress("unused")
 class VoorheesPlugin @Inject constructor(
-    private val softwareComponentFactory: SoftwareComponentFactory) : Plugin<ProjectInternal> {
+    private val softwareComponentFactory: @Suppress("UnstableApiUsage") SoftwareComponentFactory
+) : Plugin<ProjectInternal> {
+
+    companion object {
+        const val CLIENT_NAME = "jsonRpcClient"
+        const val CAPITALIZED_CLIENT_NAME = "JsonRpcClient"
+    }
 
     override fun apply(project: ProjectInternal) {
         val extension = project.extensions.create("voorhees", VoorheesExtension::class.java, project)
 
-        val generateTask = project.tasks.register("generate${capitalize(CLIENT_NAME)}", GenerateClientTask::class.java) { task ->
+        val generateTask = project.tasks.register("generate$CAPITALIZED_CLIENT_NAME", GenerateClientTask::class.java) { task ->
             task.dependsOn("classes")
             task.group = "jsonrpc"
             task.description = "Generate JSON RPC client classes"
         }
 
-        val jarTask = project.tasks.register("jar${capitalize(CLIENT_NAME)}", Jar::class.java) { task ->
+        val jarTask = project.tasks.register("jar$CAPITALIZED_CLIENT_NAME", Jar::class.java) { task ->
             task.dependsOn(generateTask)
             task.group = "jsonrpc"
             task.description = "Build a jar out of JSON RPC client classes"
@@ -50,6 +52,7 @@ class VoorheesPlugin @Inject constructor(
                     DefaultExternalModuleDependency("com.hylamobile", "voorhees-client", "1.0.0"))
                 conf.outgoing.apply {
                     artifacts.add(LazyPublishArtifact(jarTask))
+                    @Suppress("UnstableApiUsage")
                     attributes.attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.JAR_TYPE)
                 }
             }
@@ -72,8 +75,8 @@ class VoorheesPlugin @Inject constructor(
                     }
                 }
 
-                project.tasks.register("publish${capitalize(CLIENT_NAME)}") { task ->
-                    task.dependsOn("publish${capitalize(CLIENT_NAME)}PublicationToMavenRepository")
+                project.tasks.register("publish$CAPITALIZED_CLIENT_NAME") { task ->
+                    task.dependsOn("publish${CAPITALIZED_CLIENT_NAME}PublicationToMavenRepository")
                     task.group = "jsonrpc"
                     task.description = "Publish JSON RPC client to Maven repository"
                 }
