@@ -3,5 +3,6 @@ rootProject.buildFileName = "build.gradle.kts"
 
 include("voorhees-core")
 include("voorhees-client")
+include("voorhees-client-springboot")
 include("voorhees-server")
 include("voorhees-gradle-plugin")

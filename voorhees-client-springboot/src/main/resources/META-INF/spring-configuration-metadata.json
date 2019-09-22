@@ -1,0 +1,34 @@
+{
+  "groups": [
+    {
+      "name": "voorhees.client",
+      "type": "com.hylamobile.voorhees.client.spring.config.VoorheesClientProperties",
+      "sourceType": "com.hylamobile.voorhees.client.spring.config.VoorheesClientProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "voorhees.client.basePackage",
+      "type": "java.lang.String",
+      "description": "Base package to scan for JSON RPC client interfaces",
+      "sourceType": "com.hylamobile.voorhees.client.spring.config.VoorheesClientProperties"
+    },
+    {
+      "name": "voorhees.client.services",
+      "type": "java.util.Map<java.util.String, com.hylamobile.voorhees.client.spring.config.RemoteServiceProperties>",
+      "description": "Definition of JSON RPC clients",
+      "sourceType": "com.hylamobile.voorhees.client.spring.config.VoorheesClientProperties"
+    }
+  ],
+  "hints":[{
+    "name":"voorhees.client.basePackage",
+    "providers":[{
+      "name":"class-reference"
+    }]
+  }, {
+    "name":"voorhees.client.services.values.targets",
+    "providers":[{
+      "name":"class-reference"
+    }]
+  }]
+}
