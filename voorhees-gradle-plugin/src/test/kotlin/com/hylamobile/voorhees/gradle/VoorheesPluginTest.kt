@@ -72,7 +72,7 @@ class VoorheesPluginTest {
 
     @Test
     fun `should generate bytecode`() {
-        val task = "publishJsonRpcClient"
+        val task = "publishJsonRpcClientPublicationToMavelLocal"
         val result = GradleRunner.create()
             .withArguments(task)
             .withProjectDir(testProjectDir.root)
