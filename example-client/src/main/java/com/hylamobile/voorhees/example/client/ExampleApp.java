@@ -91,7 +91,7 @@ public class ExampleApp implements CommandLineRunner {
     }
 
     private void initMovieService() {
-        JsonRpcClient jsonRpcClient = new JsonRpcClient(new ServerConfig("http://localhost:28888/"));
+        JsonRpcClient jsonRpcClient = new JsonRpcClient.of(new ServerConfig("http://localhost:28888/"));
         movieService = jsonRpcClient.getService(RemoteMovieService.class);
     }
 

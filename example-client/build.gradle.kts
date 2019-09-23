@@ -24,7 +24,7 @@ java {
 }
 
 dependencies {
-    api(project(":voorhees-client"))
+    api(project(":voorhees-client-fuel"))
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("com.fasterxml.jackson.core:jackson-core:2.9.9")
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.9.9")

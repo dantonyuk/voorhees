@@ -9,7 +9,7 @@ import java.lang.reflect.Parameter
 import java.lang.reflect.Proxy
 import java.util.*
 
-open class JsonRpcClient(private val serverConfig: ServerConfig) {
+open class JsonRpcClient private constructor(private val transportGroup: TransportGroup) {
 
     companion object {
         val TRANSPORT_PROVIDER: TransportProvider?
@@ -19,11 +19,18 @@ open class JsonRpcClient(private val serverConfig: ServerConfig) {
             val iterator = serviceLoader.iterator()
             TRANSPORT_PROVIDER = if (iterator.hasNext()) iterator.next() else null
         }
-    }
 
-    val transportGroup: TransportGroup
-        get() = TRANSPORT_PROVIDER?.transportGroup(serverConfig) ?:
-            throw IllegalStateException("JSON RPC Transport provider not found")
+        @JvmStatic
+        fun of(transportGroup: TransportGroup): JsonRpcClient =
+            JsonRpcClient(transportGroup)
+
+        @JvmStatic
+        fun of(serverConfig: ServerConfig): JsonRpcClient {
+            val transportGroup = TRANSPORT_PROVIDER?.transportGroup(serverConfig) ?:
+                throw IllegalStateException("JSON RPC Transport provider not found")
+            return JsonRpcClient(transportGroup)
+        }
+    }
 
     fun <T> getService(type: Class<T>): T {
         val anno = type.getAnnotation(JsonRpcService::class.java)
