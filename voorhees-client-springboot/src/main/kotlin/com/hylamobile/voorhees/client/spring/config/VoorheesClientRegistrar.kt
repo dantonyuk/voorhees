@@ -99,21 +99,22 @@ class VoorheesClientRegistrar : ImportBeanDefinitionRegistrar, EnvironmentAware,
 
         private fun transportGroup(props: VoorheesProperties.ClientProperties): TransportGroup {
             val serverConfig = ServerConfig(props.endpoint)
-            return object : TransportGroup {
-                override fun transport(location: String): Transport =
-                    object : Transport(serverConfig.withLocation(location)) {
-                        override fun getResponseAsString(request: Request): String {
-                            val restTemplate = RestTemplate()
-                            val httpHeaders = HttpHeaders().apply {
-                                contentType = MediaType.APPLICATION_JSON
-                            }
-                            val httpEntity = HttpEntity(request.jsonString, httpHeaders)
-
-                            return restTemplate.postForObject(
-                                this.serverConfig.url, httpEntity, String::class.java) ?: "null"
-                        }
-                    }
+            return { location ->
+                RestTemplateTransport(serverConfig.withLocation(location))
             }
+        }
+    }
+
+    private class RestTemplateTransport(serverConfig: ServerConfig) : Transport(serverConfig) {
+        override fun getResponseAsString(request: Request): String {
+            val restTemplate = RestTemplate()
+            val httpHeaders = HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_JSON
+            }
+            val httpEntity = HttpEntity(request.jsonString, httpHeaders)
+
+            return restTemplate.postForObject(
+                this.serverConfig.url, httpEntity, String::class.java) ?: "null"
         }
     }
 }
