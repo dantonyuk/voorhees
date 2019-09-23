@@ -9,7 +9,7 @@ import java.lang.reflect.Parameter
 import java.lang.reflect.Proxy
 import java.util.*
 
-open class JsonRpcClient private constructor(private val transportGroup: TransportGroup) {
+open class JsonRpcClient(private val transportGroup: TransportGroup) {
 
     companion object {
         val TRANSPORT_PROVIDER: TransportProvider?
@@ -19,10 +19,6 @@ open class JsonRpcClient private constructor(private val transportGroup: Transpo
             val iterator = serviceLoader.iterator()
             TRANSPORT_PROVIDER = if (iterator.hasNext()) iterator.next() else null
         }
-
-        @JvmStatic
-        fun of(transportGroup: TransportGroup): JsonRpcClient =
-            JsonRpcClient(transportGroup)
 
         @JvmStatic
         fun of(serverConfig: ServerConfig): JsonRpcClient {
@@ -44,7 +40,7 @@ open class JsonRpcClient private constructor(private val transportGroup: Transpo
     @Suppress("UNCHECKED_CAST")
     fun <T> getService(location: String, type: Class<T>): T =
         Proxy.newProxyInstance(type.classLoader, arrayOf(type),
-            ServiceProxy(transportGroup.transport(location))) as T
+            ServiceProxy(transportGroup(location))) as T
 
     inner class ServiceProxy(private val transport: Transport) : InvocationHandler {
         override fun invoke(proxy: Any?, method: Method, args: Array<out Any?>?): Any? {
