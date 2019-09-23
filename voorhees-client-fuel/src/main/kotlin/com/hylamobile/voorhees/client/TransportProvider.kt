@@ -9,14 +9,20 @@ import java.nio.charset.Charset
 
 class FuelTransportProvider : TransportProvider {
 
-    override fun transport(serverConfig: ServerConfig): Transport =
-        FuelTransport(serverConfig)
+    override fun transportGroup(serverConfig: ServerConfig): TransportGroup =
+        FuelTransportGroup(serverConfig)
 }
 
-class FuelTransport(val serverConfig: ServerConfig) : Transport {
+class FuelTransportGroup (val serverConfig: ServerConfig) : TransportGroup {
 
-    override fun getResponseAsString(endpoint: String, request: Request): String =
-        endpoint.httpPost()
+    override fun transport(location: String): Transport =
+        FuelTransport(serverConfig.withLocation(location))
+}
+
+class FuelTransport(serverConfig: ServerConfig) : Transport(serverConfig) {
+
+    override fun getResponseAsString(request: Request): String =
+        serverConfig.url.httpPost()
             .apply { updateOptions(executionOptions) }
             .jsonBody(request.jsonString)
             .response()

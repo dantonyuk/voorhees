@@ -3,27 +3,48 @@ package com.hylamobile.voorhees.client
 import com.hylamobile.voorhees.jsonrpc.Request
 import com.hylamobile.voorhees.jsonrpc.Response
 import com.hylamobile.voorhees.jsonrpc.parseJsonAs
+import com.hylamobile.voorhees.util.uriCombine
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
-interface TransportProvider {
+data class ServerConfig(
+    val url: String,
+    var connectTimeout: Int? = null,
+    var readTimeout: Int? = null) {
 
-    fun transport(serverConfig: ServerConfig): Transport
+    // for Java
+    constructor(url: String) : this(url, null, null)
+
+    fun withLocation(location: String) =
+        copy(url = uriCombine(url, location))
 }
 
-interface Transport {
+interface TransportProvider {
 
-    fun sendRequest(endpoint: String, request: Request, retType: Type): Response<*> {
-        val jsonRepr = getResponseAsString(endpoint, request)
+    fun transportGroup(serverConfig: ServerConfig): TransportGroup
+}
+
+interface TransportGroup {
+
+    fun transport(location: String): Transport
+}
+
+abstract class Transport(val serverConfig: ServerConfig) {
+
+    abstract fun getResponseAsString(request: Request): String
+
+    open fun sendRequest(request: Request, retType: Type): Response<*> {
+        val jsonRepr = getResponseAsString(request)
         return jsonRepr.parseJsonAs(responseType(retType)) as Response<*>
     }
 
-    fun getResponseAsString(endpoint: String, request: Request): String
-
     private fun responseType(retType: Type) =
         object : ParameterizedType {
+
             override fun getRawType(): Type = Response::class.java
+
             override fun getOwnerType(): Type? = null
+
             override fun getActualTypeArguments(): Array<Type> = arrayOf(
                 when (retType) {
                     Void.TYPE -> Object::class.java

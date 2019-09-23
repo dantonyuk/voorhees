@@ -3,17 +3,11 @@ package com.hylamobile.voorhees.client
 import com.hylamobile.voorhees.client.annotation.JsonRpcService
 import com.hylamobile.voorhees.client.annotation.Param
 import com.hylamobile.voorhees.jsonrpc.*
-import com.hylamobile.voorhees.util.uriCombine
-import java.lang.reflect.*
+import java.lang.reflect.InvocationHandler
+import java.lang.reflect.Method
+import java.lang.reflect.Parameter
+import java.lang.reflect.Proxy
 import java.util.*
-
-data class ServerConfig(
-    val url: String,
-    var connectTimeout: Int? = null,
-    var readTimeout: Int? = null) {
-    // for Java
-    constructor(url: String) : this(url, null, null)
-}
 
 open class JsonRpcClient(private val serverConfig: ServerConfig) {
 
@@ -27,8 +21,9 @@ open class JsonRpcClient(private val serverConfig: ServerConfig) {
         }
     }
 
-    private val transport = TRANSPORT_PROVIDER?.transport(serverConfig) ?:
-        throw IllegalStateException("JSON RPC Transport provider not found")
+    val transportGroup: TransportGroup
+        get() = TRANSPORT_PROVIDER?.transportGroup(serverConfig) ?:
+            throw IllegalStateException("JSON RPC Transport provider not found")
 
     fun <T> getService(type: Class<T>): T {
         val anno = type.getAnnotation(JsonRpcService::class.java)
@@ -40,12 +35,11 @@ open class JsonRpcClient(private val serverConfig: ServerConfig) {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T> getService(location: String, type: Class<T>): T {
-        val path = uriCombine(serverConfig.url, location)
-        return Proxy.newProxyInstance(type.classLoader, arrayOf(type), ServiceProxy(path)) as T
-    }
+    fun <T> getService(location: String, type: Class<T>): T =
+        Proxy.newProxyInstance(type.classLoader, arrayOf(type),
+            ServiceProxy(transportGroup.transport(location))) as T
 
-    inner class ServiceProxy(private val endpoint: String) : InvocationHandler {
+    inner class ServiceProxy(private val transport: Transport) : InvocationHandler {
         override fun invoke(proxy: Any?, method: Method, args: Array<out Any?>?): Any? {
             // for debugger
             if (method.name == "toString") {
@@ -53,7 +47,7 @@ open class JsonRpcClient(private val serverConfig: ServerConfig) {
             }
 
             val jsonRequest = prepareRequest(method, args)
-            val jsonResponse = transport.sendRequest(endpoint, jsonRequest, method.genericReturnType)
+            val jsonResponse = transport.sendRequest(jsonRequest, method.genericReturnType)
             jsonResponse.error?.let { error -> throw CustomJsonRpcException(error) }
             return jsonResponse.result
         }
