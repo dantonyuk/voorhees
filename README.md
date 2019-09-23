@@ -6,9 +6,6 @@ services in Spring applications in a quite fast and seamless way.
 ## Table of Contents
 
   * [Installation](#installation)
-  * [Spring Integration](#spring-integration)
-    * [Spring Boot Applications](#spring-boot-applications)
-    * [Spring Applications](#spring-applications)
   * [Services](#services)
     * [Named Parameters](#named-parameters)
     * [Default Values](#default-values)
@@ -18,6 +15,10 @@ services in Spring applications in a quite fast and seamless way.
   * [Exception Handling](#exception-handling)
     * [JSON RPC Specific Errors](#json-rpc-specific-errors)
     * [User Defined Errors](#user-defined-errors)
+  * [Spring Integration](#spring-integration)
+    * [Spring Boot Applications](#spring-boot-applications)
+    * [Spring Applications](#spring-applications)
+    * [Client in Spring Boot](#client-in-spring-boot)
   * [Client library generation](#client-library-generation)
     * [Groovy plugin](#groovy-plugin)
 
@@ -25,34 +26,6 @@ services in Spring applications in a quite fast and seamless way.
 
 It's not yet deployed in public maven repositories so use it as system
 artifact, or deploy it to your local maven repository.
-
-## Spring Integration
-
-### Spring Boot Applications
-
-There is no need to take any additional step in order to integrate
-Voorhees. Having the jar dependency in your class path means that
-Spring Boot application will be configured automatically.
-
-To disable Voorhees auto-configuration, you want to set application
-property `spring.autoconfigure.exclude`:
-
-```yaml
-spring:
-  autoconfigure:
-    exclude: com.hylamobile.voorhees.server.spring.config.VoorheesAutoConfiguration
-```
-
-### Spring Applications
-
-To enable Voorhees in your Spring applications, use
-[`@EnableVoorhees`](voorhees-server/src/main/kotlin/com/hylamobile/voorhees/server/spring/annotation/EnableVoorhees.kt)
-
-```java
-@EnableVoorhees
-public class JsonRpcConfiguration {
-}
-```
 
 ## Services
 
@@ -249,6 +222,91 @@ To be updated
 ### User Defined Errors
 
 To be updated
+
+## Spring Integration
+
+### Spring Boot Applications
+
+There is no need to take any additional step in order to integrate
+Voorhees. Having the jar dependency in your class path means that
+Spring Boot application will be configured automatically.
+
+To disable Voorhees auto-configuration, you want to set application
+property `spring.autoconfigure.exclude`:
+
+```yaml
+spring:
+  autoconfigure:
+    exclude: com.hylamobile.voorhees.server.spring.config.VoorheesAutoConfiguration
+```
+
+### Spring Applications
+
+To enable Voorhees in your Spring applications, use
+[`@EnableVoorhees`](voorhees-server/src/main/kotlin/com/hylamobile/voorhees/server/spring/annotation/EnableVoorhees.kt)
+
+```java
+@EnableVoorhees
+public class JsonRpcConfiguration {
+}
+```
+
+### Client in Spring Boot
+
+If you use [client-library generation procedure](#client-library-generation)
+you may take an advantage of remote services auto-registration:
+
+```groovy
+dependencies {
+	compile("com.hylamobile:voorhees-client-springboot:2.0.0")
+    // ...
+}
+``` 
+
+Instead of manual creating of JSON RPC clients and building services
+out of them, just describe them in `application.yml`:
+
+```yaml
+voorhees:
+  client:
+    basePackage: com.acme.remote
+    services:
+      default:
+        endpoint: http://server.com/api
+      user-service:
+        endpoint: http://server.com/user-service
+        targets: com.acme.remote.user
+        restTemplate: userRestTemplate
+```
+
+There could be `default` client that builds all of the services from
+the `basePackage` that are not listed in `targets` of any other service.
+
+The property `target` is a list of service classes and/or packages that
+are supposed to be scanned recursively in order to find services for
+the current client. E.g. in the example provided above for the client
+`user-service` package `com.acme.remote.user` will be scanned to pick up
+all the services from it.
+
+Apparently `endpoint` property binds specified endpoint to all belonging
+services.
+
+By default Voorhees uses JSON RPC transport that is located in classpath
+(see JSON RPC transport). But for auto-registered services if the
+property `restTemplate` is specified then custom transport will be used.
+This transport uses `RestTemplate` bean with specified name to get the
+data from the JSON RPC server. In the example above for `user-service`
+client `userRestTemplate` will be used. It's helpful if you need to
+define specific HTTP properties, e.g. authentication etc.
+
+To use a service just autowire it:
+
+```java
+@Autowired
+private MyService myService;
+``` 
+
+Voila!
 
 ## Client Library Generation
 
