@@ -7,5 +7,6 @@ class VoorheesProperties {
     open class ClientProperties {
         var endpoint: String = ""
         var targets: Array<String> = arrayOf()
+        var restTemplate: String? = null
     }
 }

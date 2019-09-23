@@ -4,6 +4,7 @@ dependencies {
     compileOnly("org.springframework.boot:spring-boot:2.1.8.RELEASE")
     compileOnly("org.springframework:spring-webmvc:5.1.9.RELEASE")
 
+    testApi(project(":voorhees-client-fuel"))
     testImplementation("junit:junit:4.12")
     testImplementation("org.mock-server:mockserver-netty:5.3.0")
     testImplementation("com.fasterxml.jackson.core:jackson-core:2.9.9")

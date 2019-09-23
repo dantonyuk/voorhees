@@ -7,3 +7,4 @@ voorhees:
       user-service:
         endpoint: http://localhost:37143/user-service
         targets: com.hylamobile.voorhees.client.spring.user
+        restTemplate: userRestTemplate

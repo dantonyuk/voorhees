@@ -1,11 +1,5 @@
 package com.hylamobile.voorhees.client.spring.config
 
-import com.hylamobile.voorhees.client.JsonRpcClient
-import com.hylamobile.voorhees.client.ServerConfig
-import com.hylamobile.voorhees.client.Transport
-import com.hylamobile.voorhees.client.TransportGroup
-import com.hylamobile.voorhees.jsonrpc.Request
-import com.hylamobile.voorhees.jsonrpc.jsonString
 import org.springframework.beans.factory.BeanClassLoaderAware
 import org.springframework.beans.factory.support.BeanDefinitionBuilder
 import org.springframework.beans.factory.support.BeanDefinitionRegistry
@@ -14,11 +8,7 @@ import org.springframework.context.EnvironmentAware
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar
 import org.springframework.core.env.Environment
 import org.springframework.core.type.AnnotationMetadata
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.MediaType
 import org.springframework.util.ClassUtils
-import org.springframework.web.client.RestTemplate
 
 class VoorheesClientRegistrar : ImportBeanDefinitionRegistrar, EnvironmentAware, BeanClassLoaderAware {
 
@@ -55,9 +45,8 @@ class VoorheesClientRegistrar : ImportBeanDefinitionRegistrar, EnvironmentAware,
         fun registerJsonRpcClients() {
             clientConfig.services.forEach { (service, info) ->
                 val beanDef = BeanDefinitionBuilder
-                    .genericBeanDefinition(JsonRpcClient::class.java)
-                    .addConstructorArgValue(transportGroup(info))
-                    .setFactoryMethod("of")
+                    .genericBeanDefinition(SpringJsonRpcClient::class.java)
+                    .addConstructorArgValue(info)
                     .beanDefinition
                 registry.registerBeanDefinition("${service.uniform}JsonRpcClient", beanDef)
             }
@@ -96,25 +85,5 @@ class VoorheesClientRegistrar : ImportBeanDefinitionRegistrar, EnvironmentAware,
             get() = """[-_](\w)""".toRegex().replace(this) {
                 it.value.substring(1).toUpperCase()
             }
-
-        private fun transportGroup(props: VoorheesProperties.ClientProperties): TransportGroup {
-            val serverConfig = ServerConfig(props.endpoint)
-            return { location ->
-                RestTemplateTransport(serverConfig.withLocation(location))
-            }
-        }
-    }
-
-    private class RestTemplateTransport(serverConfig: ServerConfig) : Transport(serverConfig) {
-        override fun getResponseAsString(request: Request): String {
-            val restTemplate = RestTemplate()
-            val httpHeaders = HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_JSON
-            }
-            val httpEntity = HttpEntity(request.jsonString, httpHeaders)
-
-            return restTemplate.postForObject(
-                this.serverConfig.url, httpEntity, String::class.java) ?: "null"
-        }
     }
 }
