@@ -7,18 +7,6 @@ import com.hylamobile.voorhees.jsonrpc.Request
 import com.hylamobile.voorhees.jsonrpc.jsonString
 import java.nio.charset.Charset
 
-class FuelTransportProvider : TransportProvider {
-
-    override fun transportGroup(serverConfig: ServerConfig): TransportGroup =
-        FuelTransportGroup(serverConfig)
-}
-
-class FuelTransportGroup (val serverConfig: ServerConfig) : TransportGroup {
-
-    override fun transport(location: String): Transport =
-        FuelTransport(serverConfig.withLocation(location))
-}
-
 class FuelTransport(serverConfig: ServerConfig) : Transport(serverConfig) {
 
     override fun getResponseAsString(request: Request): String =
