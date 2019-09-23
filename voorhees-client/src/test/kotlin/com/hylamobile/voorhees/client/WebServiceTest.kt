@@ -52,7 +52,6 @@ class WebServiceTest {
         mockServer.close()
     }
 
-
     private val client
         get() = JsonRpcClient.of(ServerConfig("http://localhost:$localServerPort/"))
 

@@ -3,7 +3,7 @@ voorhees:
     basePackage: com.hylamobile.voorhees.client.spring
     services:
       default:
-        endpoint: http://localhost/api/
+        endpoint: http://localhost:37143/
       user-service:
-        endpoint: http://localhost/user-service
+        endpoint: http://localhost:37143/user-service
         targets: com.hylamobile.voorhees.client.spring.user

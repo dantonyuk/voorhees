@@ -1,6 +1,11 @@
 package com.hylamobile.voorhees.client.spring.config
 
 import com.hylamobile.voorhees.client.JsonRpcClient
+import com.hylamobile.voorhees.client.ServerConfig
+import com.hylamobile.voorhees.client.Transport
+import com.hylamobile.voorhees.client.TransportGroup
+import com.hylamobile.voorhees.jsonrpc.Request
+import com.hylamobile.voorhees.jsonrpc.jsonString
 import org.springframework.beans.factory.BeanClassLoaderAware
 import org.springframework.beans.factory.support.BeanDefinitionBuilder
 import org.springframework.beans.factory.support.BeanDefinitionRegistry
@@ -9,7 +14,11 @@ import org.springframework.context.EnvironmentAware
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar
 import org.springframework.core.env.Environment
 import org.springframework.core.type.AnnotationMetadata
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
 import org.springframework.util.ClassUtils
+import org.springframework.web.client.RestTemplate
 
 class VoorheesClientRegistrar : ImportBeanDefinitionRegistrar, EnvironmentAware, BeanClassLoaderAware {
 
@@ -33,13 +42,13 @@ class VoorheesClientRegistrar : ImportBeanDefinitionRegistrar, EnvironmentAware,
         }
     }
 
-    private fun ifConfigPresents(block: (VoorheesClientProperties) -> Unit) {
-        val binder = Binder.get(environment).bind("voorhees.client", VoorheesClientProperties::class.java)
+    private fun ifConfigPresents(block: (VoorheesProperties) -> Unit) {
+        val binder = Binder.get(environment).bind("voorhees.client", VoorheesProperties::class.java)
         binder.ifBound(block)
     }
 
     private class Registrar(
-        val clientConfig: VoorheesClientProperties,
+        val clientConfig: VoorheesProperties,
         val registry: BeanDefinitionRegistry,
         val beanClassLoader: ClassLoader) {
 
@@ -47,7 +56,8 @@ class VoorheesClientRegistrar : ImportBeanDefinitionRegistrar, EnvironmentAware,
             clientConfig.services.forEach { (service, info) ->
                 val beanDef = BeanDefinitionBuilder
                     .genericBeanDefinition(JsonRpcClient::class.java)
-                    .addConstructorArgValue(info.endpoint)
+                    .addConstructorArgValue(transportGroup(info))
+                    .setFactoryMethod("of")
                     .beanDefinition
                 registry.registerBeanDefinition("${service.uniform}JsonRpcClient", beanDef)
             }
@@ -75,7 +85,7 @@ class VoorheesClientRegistrar : ImportBeanDefinitionRegistrar, EnvironmentAware,
             val beanClass = ClassUtils.resolveClassName(beanClassName, beanClassLoader)
             val beanName = ClassUtils.getShortNameAsProperty(beanClass)
             val serviceBeanDef = BeanDefinitionBuilder
-                .genericBeanDefinition(JsonRpcClient::class.java)
+                .genericBeanDefinition()
                 .addConstructorArgValue(beanClass)
                 .setFactoryMethodOnBean("getService", "${service.uniform}JsonRpcClient")
                 .beanDefinition
@@ -86,5 +96,24 @@ class VoorheesClientRegistrar : ImportBeanDefinitionRegistrar, EnvironmentAware,
             get() = """[-_](\w)""".toRegex().replace(this) {
                 it.value.substring(1).toUpperCase()
             }
+
+        private fun transportGroup(props: VoorheesProperties.ClientProperties): TransportGroup {
+            val serverConfig = ServerConfig(props.endpoint)
+            return object : TransportGroup {
+                override fun transport(location: String): Transport =
+                    object : Transport(serverConfig.withLocation(location)) {
+                        override fun getResponseAsString(request: Request): String {
+                            val restTemplate = RestTemplate()
+                            val httpHeaders = HttpHeaders().apply {
+                                contentType = MediaType.APPLICATION_JSON
+                            }
+                            val httpEntity = HttpEntity(request.jsonString, httpHeaders)
+
+                            return restTemplate.postForObject(
+                                this.serverConfig.url, httpEntity, String::class.java) ?: "null"
+                        }
+                    }
+            }
+        }
     }
 }
