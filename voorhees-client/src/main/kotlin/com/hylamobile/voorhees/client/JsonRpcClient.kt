@@ -1,24 +1,36 @@
 package com.hylamobile.voorhees.client
 
-import com.github.kittinunf.fuel.core.RequestExecutionOptions
-import com.github.kittinunf.fuel.core.extensions.jsonBody
-import com.github.kittinunf.fuel.httpPost
 import com.hylamobile.voorhees.client.annotation.JsonRpcService
 import com.hylamobile.voorhees.client.annotation.Param
 import com.hylamobile.voorhees.jsonrpc.*
-import com.hylamobile.voorhees.util.uriCombine
-import java.lang.reflect.*
-import java.nio.charset.Charset
+import java.lang.reflect.InvocationHandler
+import java.lang.reflect.Method
+import java.lang.reflect.Parameter
+import java.lang.reflect.Proxy
+import java.util.*
 
-data class ServerConfig(
-    val url: String,
-    var connectTimeout: Int? = null,
-    var readTimeout: Int? = null) {
-    // for Java
-    constructor(url: String) : this(url, null, null)
-}
+open class JsonRpcClient private constructor(private val transportGroup: TransportGroup) {
 
-open class JsonRpcClient(private val serverConfig: ServerConfig) {
+    companion object {
+        val TRANSPORT_PROVIDER: TransportProvider?
+
+        init {
+            val serviceLoader = ServiceLoader.load(TransportProvider::class.java)
+            val iterator = serviceLoader.iterator()
+            TRANSPORT_PROVIDER = if (iterator.hasNext()) iterator.next() else null
+        }
+
+        @JvmStatic
+        fun of(transportGroup: TransportGroup): JsonRpcClient =
+            JsonRpcClient(transportGroup)
+
+        @JvmStatic
+        fun of(serverConfig: ServerConfig): JsonRpcClient {
+            val transportGroup = TRANSPORT_PROVIDER?.transportGroup(serverConfig) ?:
+                throw IllegalStateException("JSON RPC Transport provider not found")
+            return JsonRpcClient(transportGroup)
+        }
+    }
 
     fun <T> getService(type: Class<T>): T {
         val anno = type.getAnnotation(JsonRpcService::class.java)
@@ -30,38 +42,19 @@ open class JsonRpcClient(private val serverConfig: ServerConfig) {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T> getService(location: String, type: Class<T>): T {
-        val path = uriCombine(serverConfig.url, location)
-        return Proxy.newProxyInstance(type.classLoader, arrayOf(type), ServiceProxy(path)) as T
-    }
+    fun <T> getService(location: String, type: Class<T>): T =
+        Proxy.newProxyInstance(type.classLoader, arrayOf(type),
+            ServiceProxy(transportGroup.transport(location))) as T
 
-    open fun updateOptions(options: RequestExecutionOptions) {
-        serverConfig.connectTimeout?.also { options.timeoutInMillisecond = it }
-        serverConfig.readTimeout?.also { options.timeoutReadInMillisecond = it }
-    }
-
-    inner class ServiceProxy(private val endpoint: String) : InvocationHandler {
+    inner class ServiceProxy(private val transport: Transport) : InvocationHandler {
         override fun invoke(proxy: Any?, method: Method, args: Array<out Any?>?): Any? {
-            fun responseType() =
-                object : ParameterizedType {
-                    override fun getRawType(): Type = Response::class.java
-                    override fun getOwnerType(): Type? = null
-                    override fun getActualTypeArguments(): Array<Type> = arrayOf(
-                        when (val retType = method.genericReturnType) {
-                            Void.TYPE -> Object::class.java
-                            else -> retType
-                        })
-                }
-
             // for debugger
             if (method.name == "toString") {
                 return "Just a proxy"
             }
 
             val jsonRequest = prepareRequest(method, args)
-            val httpResult = sendRequest(jsonRequest)
-            val jsonRepr = httpResult.get().toString(Charset.forName("UTF-8"))
-            val jsonResponse = jsonRepr.parseJsonAs(responseType()) as Response<*>
+            val jsonResponse = transport.sendRequest(jsonRequest, method.genericReturnType)
             jsonResponse.error?.let { error -> throw CustomJsonRpcException(error) }
             return jsonResponse.result
         }
@@ -89,12 +82,5 @@ open class JsonRpcClient(private val serverConfig: ServerConfig) {
 
             return Request(method = method.name, params = params, id = NumberId(1))
         }
-
-        private fun sendRequest(jsonRequest: Request) =
-            endpoint.httpPost()
-                .apply { this@JsonRpcClient.updateOptions(executionOptions) }
-                .jsonBody(jsonRequest.jsonString)
-                .response()
-                .third
     }
 }

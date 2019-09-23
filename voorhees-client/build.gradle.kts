@@ -6,7 +6,6 @@ tasks.withType<KotlinCompile> {
 
 dependencies {
     api(project(":voorhees-core"))
-    api("com.github.kittinunf.fuel:fuel:2.2.1")
 
     compileOnly("javax.servlet:javax.servlet-api:4.0.1")
     compileOnly("com.fasterxml.jackson.core:jackson-core:2.9.9")
@@ -14,6 +13,7 @@ dependencies {
     compileOnly("com.fasterxml.jackson.core:jackson-databind:2.9.9")
     compileOnly("org.springframework:spring-webmvc:5.1.9.RELEASE")
 
+    testApi(project(":voorhees-client-fuel"))
     testImplementation("junit:junit:4.12")
     testImplementation("org.mock-server:mockserver-netty:5.3.0")
     testImplementation("com.fasterxml.jackson.core:jackson-core:2.9.9")
