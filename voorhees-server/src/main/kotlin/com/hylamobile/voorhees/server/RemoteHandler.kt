@@ -26,6 +26,9 @@ class RemoteHandler(
             { method -> RemoteHandler(server, method, config) }
     }
 
+    override val notificationExecutor: NotificationExecutor
+        get() = config.notificationExecutor
+
     private val paramByName: LinkedHashMap<String, MethodParameter> =
         method.parameters
             .zip(config.parameterNameDiscoverer.parameterNames(method) ?: emptyArray())
@@ -49,14 +52,13 @@ class RemoteHandler(
     private val requiredParamNames =
         parameters.filter { it.defaultValue.isEmpty }.map { it.name }
 
-    override fun call(request: Request): Response<*> {
+    override fun invoke(request: Request): Response<Any> {
         val args = convertToArguments(request.params)
 
         try {
             val result = method.invoke(server, *args)
             return Response.success(result, request.id)
-        }
-        catch (ex: InvocationTargetException) {
+        } catch (ex: InvocationTargetException) {
             ex.printStackTrace()
             val targetEx = ex.targetException
             val error =
