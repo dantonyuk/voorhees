@@ -1,6 +1,7 @@
 package com.hylamobile.voorhees.server.spring.webmvc
 
 import com.hylamobile.voorhees.jsonrpc.Request
+import com.hylamobile.voorhees.server.NotificationExecutor
 import com.hylamobile.voorhees.server.RemoteConfig
 import com.hylamobile.voorhees.server.RemoteServer
 import com.hylamobile.voorhees.server.annotation.JsonRpcService
@@ -24,27 +25,16 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
     @Value("\${spring.voorhees.server.api.prefix:}")
     private var apiPrefix: String = ""
 
+    @Value("\${spring.voorhees.server.notification-executor:" +
+        "com.hylamobile.voorhees.server.notify.CommonForkJoinNotificationExecutor}")
+    private var notificationExecutorClass: String = ""
+
     private lateinit var remoteServers: Map<String, RemoteServer>
 
     @PostConstruct
     fun init() {
-        val config = RemoteConfig(
-            object : ParameterNameDiscoverer {
-                private val discoverer = DefaultParameterNameDiscoverer()
-
-                override fun parameterNames(method: Method): Array<String>? =
-                    discoverer.getParameterNames(method)
-            }
-        )
-
-        remoteServers = (applicationContext ?: throw IllegalStateException("Should not be thrown"))
-            .getBeansWithAnnotation(JsonRpcService::class.java)
-            .values
-            .flatMap { bean ->
-                val jsonRpcAnno = bean.javaClass.getAnnotation(JsonRpcService::class.java)
-                jsonRpcAnno.locations.map { loc -> uriCombine(apiPrefix, loc) to RemoteServer(bean, config) }
-            }
-            .toMap()
+        val config = createConfig()
+        initRemoteServers(config)
     }
 
     override fun getOrder(): Int = _order
@@ -66,10 +56,31 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
         }
     }
 
+    private fun createConfig(): RemoteConfig =
+        RemoteConfig(
+            object : ParameterNameDiscoverer {
+                private val discoverer = DefaultParameterNameDiscoverer()
+
+                override fun parameterNames(method: Method): Array<String>? =
+                    discoverer.getParameterNames(method)
+            },
+            Class.forName(notificationExecutorClass).newInstance() as NotificationExecutor)
+
+    private fun initRemoteServers(config: RemoteConfig) {
+        remoteServers = (applicationContext ?: throw IllegalStateException("Should not be thrown"))
+            .getBeansWithAnnotation(JsonRpcService::class.java)
+            .values
+            .flatMap { bean ->
+                val jsonRpcAnno = bean.javaClass.getAnnotation(JsonRpcService::class.java)
+                jsonRpcAnno.locations.map { loc -> uriCombine(apiPrefix, loc) to RemoteServer(bean, config) }
+            }
+            .toMap()
+    }
+
     private fun findHandler(httpRequest: HttpServletRequest): JsonRpcHandler? {
         val remoteServer = remoteServers[httpRequest.realPath] ?: return null
         val jsonRequest: Request = httpRequest.jsonRequest
         val jsonResponse = remoteServer.call(jsonRequest)
-        return JsonRpcHandler(jsonResponse)
+        return JsonRpcHandler(jsonResponse.getOrNull)
     }
 }
