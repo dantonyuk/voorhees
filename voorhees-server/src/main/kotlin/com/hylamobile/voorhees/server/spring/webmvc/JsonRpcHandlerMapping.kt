@@ -1,20 +1,20 @@
 package com.hylamobile.voorhees.server.spring.webmvc
 
-import com.hylamobile.voorhees.jsonrpc.ErrorCode
 import com.hylamobile.voorhees.jsonrpc.Request
-import com.hylamobile.voorhees.server.annotation.DontExpose
+import com.hylamobile.voorhees.server.RemoteConfig
+import com.hylamobile.voorhees.server.RemoteServer
 import com.hylamobile.voorhees.server.annotation.JsonRpcService
+import com.hylamobile.voorhees.server.reflect.ParameterNameDiscoverer
 import com.hylamobile.voorhees.util.uriCombine
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.DefaultParameterNameDiscoverer
 import org.springframework.core.Ordered
 import org.springframework.http.InvalidMediaTypeException
 import org.springframework.http.MediaType
 import org.springframework.web.servlet.handler.AbstractHandlerMapping
+import java.lang.reflect.Method
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
-
-typealias ServiceMethods = List<JsonRpcMethodHandler>
-typealias ServiceDescriptor = Map<String, ServiceMethods>
 
 class JsonRpcHandlerMapping : AbstractHandlerMapping() {
 
@@ -24,22 +24,25 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
     @Value("\${spring.voorhees.server.api.prefix:}")
     private var apiPrefix: String = ""
 
-    private lateinit var serviceDescriptors: Map<String, ServiceDescriptor>
+    private lateinit var remoteServers: Map<String, RemoteServer>
 
     @PostConstruct
     fun init() {
-        serviceDescriptors = (applicationContext ?: throw IllegalStateException("Should not be thrown"))
+        val config = RemoteConfig(
+            object : ParameterNameDiscoverer {
+                private val discoverer = DefaultParameterNameDiscoverer()
+
+                override fun parameterNames(method: Method): Array<String>? =
+                    discoverer.getParameterNames(method)
+            }
+        )
+
+        remoteServers = (applicationContext ?: throw IllegalStateException("Should not be thrown"))
             .getBeansWithAnnotation(JsonRpcService::class.java)
             .values
             .flatMap { bean ->
-                val clazz = bean.javaClass
-                val handlerInfos = clazz.methods
-                    .filter { it.getAnnotation(DontExpose::class.java) == null }
-                    .groupBy { it.name }
-                    .mapValues { it.value.map { m -> JsonRpcMethodHandler(bean, m) }}
-
-                val jsonRpcAnno = clazz.getAnnotation(JsonRpcService::class.java)
-                jsonRpcAnno.locations.map { loc -> uriCombine(apiPrefix, loc) to handlerInfos }
+                val jsonRpcAnno = bean.javaClass.getAnnotation(JsonRpcService::class.java)
+                jsonRpcAnno.locations.map { loc -> uriCombine(apiPrefix, loc) to RemoteServer(bean, config) }
             }
             .toMap()
     }
@@ -64,22 +67,9 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
     }
 
     private fun findHandler(httpRequest: HttpServletRequest): JsonRpcHandler? {
-        val serviceMethods = serviceDescriptors[httpRequest.realPath] ?: return null
-
+        val remoteServer = remoteServers[httpRequest.realPath] ?: return null
         val jsonRequest: Request = httpRequest.jsonRequest
-
-        val methods = serviceMethods[jsonRequest.method] ?:
-            return ErrorCode.METHOD_NOT_FOUND.toHandler("Method ${jsonRequest.method} not found")
-
-        val compatibleHandlers = methods
-            .filter { method -> method.compatibleWith(jsonRequest.params) }
-            .ifEmpty {
-                return ErrorCode.INVALID_PARAMS.toHandler(
-                    "Method ${jsonRequest.method} with arguments ${jsonRequest.params} not found")
-            }
-
-        return pickBest(compatibleHandlers, jsonRequest)
+        val jsonResponse = remoteServer.call(jsonRequest)
+        return JsonRpcHandler(jsonResponse)
     }
-
-    private fun pickBest(handlers: List<JsonRpcMethodHandler>, @Suppress("UNUSED_PARAMETER") jsonRequest: Request) = handlers[0]
 }
