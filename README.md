@@ -152,7 +152,7 @@ spring:
 Note that it should start with slash or be an empty string.
 
 For example, if prefix is `/api` and service location is `/my` then the
-real enspoint is going to be `/api/my`.
+real endpoint is going to be `/api/my`.
 
 ## Client (Java)
 
@@ -334,6 +334,7 @@ publish client library, you want to define `artifact` as well as
 `group` and `version`. Note that if `group` and `version` are not
 defined (as in example below) then `group` and `version` of the current
 project will be used:
+
 ```groovy
 group = "com.acme"
 version = "0.0.1"
