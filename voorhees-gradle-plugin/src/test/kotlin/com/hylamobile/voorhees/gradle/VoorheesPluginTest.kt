@@ -37,7 +37,7 @@ class VoorheesPluginTest {
             }
             
             dependencies {
-                compile("com.hylamobile:voorhees-server:2.0.0")
+                compile("com.hylamobile:voorhees-server:2.0.0-RC1")
             }
             
             repositories {
