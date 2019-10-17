@@ -1,11 +1,17 @@
 package com.hylamobile.voorhees.client.spring
 
+import com.fasterxml.jackson.databind.node.ArrayNode
 import com.hylamobile.voorhees.client.spring.config.SpringJsonRpcClient
+import com.hylamobile.voorhees.client.spring.error.GeneralException
 import com.hylamobile.voorhees.client.spring.user.FirstUserService
 import com.hylamobile.voorhees.client.spring.user.SecondUserService
+import com.hylamobile.voorhees.client.spring.user.UserException
+import com.hylamobile.voorhees.jsonrpc.CustomJsonRpcException
+import com.hylamobile.voorhees.jsonrpc.Error
+import com.hylamobile.voorhees.jsonrpc.Response
+import com.hylamobile.voorhees.jsonrpc.jsonString
 import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -105,5 +111,109 @@ class AutoRegistrationTest {
 
         verify(userRestTemplate, times(1)).postForObject(
             anyString(), any(HttpEntity::class.java), any(Class::class.java))
+    }
+
+    @Test
+    fun `user exception should be caught in user service`() {
+        mockServer.`when`(HttpRequest.request()
+            .withMethod("POST")
+            .withPath("/user-service/first")
+            .withBody("{\"method\":\"plus\",\"params\":[3,4],\"id\":1,\"jsonrpc\":\"2.0\"}"))
+            .respond(HttpResponse.response()
+                .withStatusCode(200)
+                .withBody(Response.error(Error(42, "User exception", listOf(1, 2, 3))).jsonString))
+
+        try {
+            firstUserService.plus(3, 4)
+        }
+        catch (ex: UserException) {
+            verify(userRestTemplate, times(1)).postForObject(
+                anyString(), any(HttpEntity::class.java), any(Class::class.java))
+
+            assertEquals(42, ex.error.code)
+            assertEquals("User exception", ex.error.message)
+            assertEquals(listOf(1, 2, 3), ex.error.data)
+            return
+        }
+
+        fail()
+    }
+
+    @Test
+    fun `user exception should be caught in default service`() {
+        mockServer.`when`(HttpRequest.request()
+            .withMethod("POST")
+            .withPath("/first")
+            .withBody("{\"method\":\"plus\",\"params\":[3,4],\"id\":1,\"jsonrpc\":\"2.0\"}"))
+            .respond(HttpResponse.response()
+                .withStatusCode(200)
+                .withBody(Response.error(Error(42, "User exception", listOf(1, 2, 3))).jsonString))
+
+        try {
+            firstService.plus(3, 4)
+        }
+        catch (ex: UserException) {
+            verify(userRestTemplate, never()).postForObject(
+                anyString(), any(HttpEntity::class.java), any(Class::class.java))
+
+            assertEquals(42, ex.error.code)
+            assertEquals("User exception", ex.error.message)
+            assertEquals(listOf(1, 2, 3), ex.error.data)
+            return
+        }
+
+        fail()
+    }
+
+    @Test
+    fun `general exception should not be caught in user service`() {
+        mockServer.`when`(HttpRequest.request()
+            .withMethod("POST")
+            .withPath("/user-service/first")
+            .withBody("{\"method\":\"plus\",\"params\":[3,4],\"id\":1,\"jsonrpc\":\"2.0\"}"))
+            .respond(HttpResponse.response()
+                .withStatusCode(200)
+                .withBody(Response.error(Error(100, "General exception", listOf(1, 2, 3))).jsonString))
+
+        try {
+            firstUserService.plus(3, 4)
+        }
+        catch (ex: CustomJsonRpcException) {
+            verify(userRestTemplate, times(1)).postForObject(
+                anyString(), any(HttpEntity::class.java), any(Class::class.java))
+
+            assertEquals(100, ex.error.code)
+            assertEquals("General exception", ex.error.message)
+            assertTrue(ex.error.data is ArrayNode)
+            return
+        }
+
+        fail()
+    }
+
+    @Test
+    fun `general exception should be caught in default service`() {
+        mockServer.`when`(HttpRequest.request()
+            .withMethod("POST")
+            .withPath("/first")
+            .withBody("{\"method\":\"plus\",\"params\":[3,4],\"id\":1,\"jsonrpc\":\"2.0\"}"))
+            .respond(HttpResponse.response()
+                .withStatusCode(200)
+                .withBody(Response.error(Error(100, "General exception", listOf(1, 2, 3))).jsonString))
+
+        try {
+            firstService.plus(3, 4)
+        }
+        catch (ex: GeneralException) {
+            verify(userRestTemplate, never()).postForObject(
+                anyString(), any(HttpEntity::class.java), any(Class::class.java))
+
+            assertEquals(100, ex.error.code)
+            assertEquals("General exception", ex.error.message)
+            assertEquals(listOf(1, 2, 3), ex.error.data)
+            return
+        }
+
+        fail()
     }
 }

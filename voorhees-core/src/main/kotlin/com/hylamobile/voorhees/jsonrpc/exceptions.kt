@@ -10,6 +10,9 @@ open class JsonRpcException(
 
 class CustomJsonRpcException(error: Error) : JsonRpcException(error)
 
+class ParseErrorException(data: Any? = null) :
+    JsonRpcException(ErrorCode.PARSE_ERROR.toError(data))
+
 class InvalidRequestException(data: Any? = null) :
     JsonRpcException(ErrorCode.INVALID_REQUEST.toError(data))
 

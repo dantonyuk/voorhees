@@ -44,11 +44,13 @@ class VoorheesClientRegistrar : ImportBeanDefinitionRegistrar, EnvironmentAware,
 
         fun registerJsonRpcClients() {
             clientConfig.services.forEach { (service, info) ->
+                val serviceName = service.uniform
                 val beanDef = BeanDefinitionBuilder
                     .genericBeanDefinition(SpringJsonRpcClient::class.java)
+                    .addConstructorArgValue(clientConfig.basePackage)
                     .addConstructorArgValue(info)
                     .beanDefinition
-                registry.registerBeanDefinition("${service.uniform}JsonRpcClient", beanDef)
+                registry.registerBeanDefinition("${serviceName}JsonRpcClient", beanDef)
             }
         }
 
@@ -80,10 +82,5 @@ class VoorheesClientRegistrar : ImportBeanDefinitionRegistrar, EnvironmentAware,
                 .beanDefinition
             registry.registerBeanDefinition(beanName, serviceBeanDef)
         }
-
-        private val String.uniform
-            get() = """[-_](\w)""".toRegex().replace(this) {
-                it.value.substring(1).toUpperCase()
-            }
     }
 }
