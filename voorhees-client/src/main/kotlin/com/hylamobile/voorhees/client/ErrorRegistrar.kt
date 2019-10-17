@@ -2,6 +2,7 @@ package com.hylamobile.voorhees.client
 
 import com.fasterxml.jackson.core.TreeNode
 import com.hylamobile.voorhees.jsonrpc.*
+import java.lang.reflect.Modifier
 
 class ErrorRegistrar {
 
@@ -14,8 +15,7 @@ class ErrorRegistrar {
     )
 
     fun <T : JsonRpcException> registerException(exClass: Class<T>) {
-        val codeField = exClass.getDeclaredField("CODE").apply { isAccessible = true }
-        val errorCode = codeField.getInt(null)
+        val errorCode = getErrorCode(exClass)
 
         var defaultCons: ((Error) -> Unit)? = null
         var messageCons: ((Error) -> Unit)? = null
@@ -25,7 +25,7 @@ class ErrorRegistrar {
         for (cons in exClass.constructors) {
             val types = cons.genericParameterTypes
             when (types.size) {
-                0 -> defaultCons = { error ->
+                0 -> defaultCons = { _ ->
                     throw cons.newInstance() as Exception
                 }
                 1 ->
@@ -63,5 +63,12 @@ class ErrorRegistrar {
     fun handleError(error: Error) {
         val handler = exceptions.getOrDefault(error.code) { e -> throw CustomJsonRpcException(e) }
         handler(error)
+    }
+
+    private fun <T : JsonRpcException> getErrorCode(exClass: Class<T>): Int {
+        val codeField = exClass.getDeclaredField("CODE").apply { isAccessible = true }
+        require(Modifier.isStatic(codeField.modifiers)) { "CODE field should be static" }
+
+        return codeField.getInt(null)
     }
 }
