@@ -51,7 +51,7 @@ public class MyService {
 }
 ```
 
-Please note that `location` attribute should specify at least one endpoint. 
+Please note that `location` attribute should specify at least one endpoint.
 
 All the public methods of this service class (but not its' superclasses)
 will be exposed.
@@ -213,15 +213,73 @@ Note that you even don't have to create a remote service stub.
 
 ## Exception Handling
 
-To be updated
+If an exception has been thrown during remote method call, JSON RPC
+returns error object with a code specific for this error. Depending on
+this code a client could throw specific exception that is mapped to this
+code.
 
 ### JSON RPC Specific Errors
 
-To be updated
+There are several predefined errors in JSON RPC:
+
+| Code   | Description      | Exception               |
+|--------|------------------|-------------------------|
+| -32700 | Parse error      | ParseErrorException     |
+| -32600 | Invalid Request  | InvalidRequestException |
+| -32601 | Method not found | MethodNotFoundException |
+| -32602 | Invalid params   | InvalidParamsException  |
+| -32603 | Internal error   | InternalErrorException  |
 
 ### User Defined Errors
 
-To be updated
+One can specify their own custom exception. In order to allow Spring
+to automatically pick it up, the exception should have static field
+`int CODE` with the error code this exception is mapped to.
+
+```java
+public class FieldException extends JsonRpcException {
+
+    private static final int CODE = 214;
+
+    public FieldException(String message, List<String> fields) {
+        super(new Error(CODE, message, userErrorCodes));
+    }
+}
+```
+
+If Spring Boot is not in use, the exception should be registered
+directly in JSON RPC client:
+
+```java
+jsonRpcClient.registerException(FieldException.class)
+```
+
+If this exception is thrown, the JSON RPC client parses it properly,
+for example if we have response
+
+```json
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "error": {
+    "code": 214,
+    "message": "Some field values are invalid",
+    "data": [
+      "confirmation should be same as password",
+      "email is invalid"
+    ]
+  }
+}
+```
+
+then on the client side this exception will be thrown:
+
+```java
+throw new FieldException("Some field values are invalid", listOf(
+      "confirmation should be same as password",
+      "email is invalid"
+));
+```
 
 ## Spring Integration
 
@@ -261,7 +319,7 @@ dependencies {
 	compile("com.hylamobile:voorhees-client-springboot:2.0.0")
     // ...
 }
-``` 
+```
 
 Instead of manual creating of JSON RPC clients and building services
 out of them, just describe them in `application.yml`:
@@ -304,7 +362,7 @@ To use a service just autowire it:
 ```java
 @Autowired
 private MyService myService;
-``` 
+```
 
 Voila!
 
