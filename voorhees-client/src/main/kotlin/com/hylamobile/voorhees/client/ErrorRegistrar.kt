@@ -13,7 +13,10 @@ class ErrorRegistrar {
         ErrorCode.INTERNAL_ERROR.code to { error -> throw InternalErrorException(error.data) }
     )
 
-    fun <T : JsonRpcException> registerException(errorCode: Int, exClass: Class<T>) {
+    fun <T : JsonRpcException> registerException(exClass: Class<T>) {
+        val codeField = exClass.getDeclaredField("CODE").apply { isAccessible = true }
+        val errorCode = codeField.getInt(null)
+
         var defaultCons: ((Error) -> Unit)? = null
         var messageCons: ((Error) -> Unit)? = null
         var dataCons: ((Error) -> Unit)? = null

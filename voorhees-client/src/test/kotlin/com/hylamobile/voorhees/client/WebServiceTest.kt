@@ -232,7 +232,7 @@ class WebServiceTest {
 
         try {
             val currentClient = client
-            currentClient.registerException(42, UserException::class.java)
+            currentClient.registerException(UserException::class.java)
             val testService = currentClient.getService(RemoteService::class.java)
             testService.birthdays(listOf(Person("johnny", 20)))
         }
@@ -246,5 +246,9 @@ class WebServiceTest {
         fail()
     }
 
-    class UserException(data: List<Int>) : JsonRpcException(Error(42, "User exception", data))
+    class UserException(data: List<Int>) : JsonRpcException(Error(CODE, "User exception", data)) {
+        companion object {
+            const val CODE = 42
+        }
+    }
 }

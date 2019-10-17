@@ -22,10 +22,8 @@ class SpringJsonRpcClient(
                 }
             }
             .map { beanDef ->
-                val errorClass = Class.forName(beanDef.beanClassName)
-                val codeField = errorClass.getDeclaredField("CODE").apply { isAccessible = true }
-                val code = codeField.getInt(null)
-                code to @Suppress("UNCHECKED_CAST") (errorClass as Class<out JsonRpcException>)
+                @Suppress("UNCHECKED_CAST")
+                (Class.forName(beanDef.beanClassName) as Class<out JsonRpcException>)
             }
     }
 
@@ -40,9 +38,7 @@ class SpringJsonRpcClient(
                 RestTemplateTransport(restTemplate, serverConfig.withLocation(location))
             }
         }).apply {
-            registeredErrors.forEach { (errorCode, errorClass) ->
-                registerException(errorCode, errorClass)
-            }
+            registeredErrors.forEach { errorClass -> registerException(errorClass) }
         }
     }
 

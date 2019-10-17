@@ -41,8 +41,8 @@ open class JsonRpcClient(private val transportGroup: TransportGroup) {
         Proxy.newProxyInstance(type.classLoader, arrayOf(type),
             ServiceProxy(transportGroup(location))) as T
 
-    fun <T : JsonRpcException> registerException(errorCode: Int, exClass: Class<T>) {
-        errorRegistrar.registerException(errorCode, exClass)
+    fun <T : JsonRpcException> registerException(exClass: Class<T>) {
+        errorRegistrar.registerException(exClass)
     }
 
     inner class ServiceProxy(private val transport: Transport) : InvocationHandler {
