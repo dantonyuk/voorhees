@@ -32,12 +32,12 @@ class VoorheesPluginTest {
             version = "0.0.1"
 
             voorhees {
-                packagesToScan = ["com.hylamobile"]
+                packagesToScan = ["com.hylamobile.voorhees.gradle.test"]
                 artifact = "voorhees-plugin-test-client"
             }
             
             dependencies {
-                compile("com.hylamobile:voorhees-server:2.0.0-RC1")
+                compile("com.hylamobile:voorhees-server:0.0.1")
             }
             
             repositories {
@@ -72,7 +72,7 @@ class VoorheesPluginTest {
 
     @Test
     fun `should generate bytecode`() {
-        val task = "publishJsonRpcClientPublicationToMavelLocal"
+        val task = "publishJsonRpcClientPublicationToMavenLocal"
         val result = GradleRunner.create()
             .withArguments(task)
             .withProjectDir(testProjectDir.root)
@@ -82,3 +82,5 @@ class VoorheesPluginTest {
         assertEquals(SUCCESS, result.task(":$task")?.outcome)
     }
 }
+/*
+ */

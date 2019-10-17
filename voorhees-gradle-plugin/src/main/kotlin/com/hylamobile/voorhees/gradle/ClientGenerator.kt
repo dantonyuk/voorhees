@@ -1,5 +1,6 @@
 package com.hylamobile.voorhees.gradle
 
+import com.hylamobile.voorhees.jsonrpc.JsonRpcException
 import com.hylamobile.voorhees.server.annotation.DontExpose
 import com.hylamobile.voorhees.server.annotation.JsonRpcService as ServerJsonRpcService
 import com.hylamobile.voorhees.client.annotation.JsonRpcService as ClientJsonRpcService
@@ -61,6 +62,10 @@ class ClientGenerator(
 
             remoteInterface.make().saveIn(genDir)
         }
+
+        val errorClasses = Reflections(packagesToScan, buildClassLoader)
+            .getSubTypesOf(JsonRpcException::class.java)
+        errorClasses.forEach(this::classesFrom)
 
         classesToGenerate.forEach {
             ByteBuddy().rebase(it).make().saveIn(genDir)
