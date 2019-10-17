@@ -3,16 +3,13 @@ package com.hylamobile.voorhees.client
 import com.hylamobile.voorhees.client.annotation.JsonRpcService
 import com.hylamobile.voorhees.client.annotation.Param
 import com.hylamobile.voorhees.jsonrpc.*
-import java.lang.reflect.InvocationHandler
-import java.lang.reflect.Method
-import java.lang.reflect.Parameter
-import java.lang.reflect.Proxy
+import java.lang.reflect.*
 import java.util.*
 
 open class JsonRpcClient(private val transportGroup: TransportGroup) {
 
     companion object {
-        val TRANSPORT_PROVIDER: TransportProvider?
+        private val TRANSPORT_PROVIDER: TransportProvider?
 
         init {
             val serviceLoader = ServiceLoader.load(TransportProvider::class.java)
@@ -28,6 +25,8 @@ open class JsonRpcClient(private val transportGroup: TransportGroup) {
         }
     }
 
+    private val errorRegistrar = ErrorRegistrar()
+
     fun <T> getService(type: Class<T>): T {
         val anno = type.getAnnotation(JsonRpcService::class.java)
 
@@ -42,6 +41,10 @@ open class JsonRpcClient(private val transportGroup: TransportGroup) {
         Proxy.newProxyInstance(type.classLoader, arrayOf(type),
             ServiceProxy(transportGroup(location))) as T
 
+    fun <T : JsonRpcException> registerException(errorCode: Int, exClass: Class<T>) {
+        errorRegistrar.registerException(errorCode, exClass)
+    }
+
     inner class ServiceProxy(private val transport: Transport) : InvocationHandler {
         override fun invoke(proxy: Any?, method: Method, args: Array<out Any?>?): Any? {
             // for debugger
@@ -51,7 +54,7 @@ open class JsonRpcClient(private val transportGroup: TransportGroup) {
 
             val jsonRequest = prepareRequest(method, args)
             val jsonResponse = transport.sendRequest(jsonRequest, method.genericReturnType)
-            jsonResponse.error?.let { error -> throw CustomJsonRpcException(error) }
+            jsonResponse.error?.let(errorRegistrar::handleError)
             return jsonResponse.result
         }
 

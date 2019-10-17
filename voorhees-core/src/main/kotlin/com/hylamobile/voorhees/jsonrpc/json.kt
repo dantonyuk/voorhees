@@ -133,7 +133,8 @@ fun String.parseJsonAs(type: Type): Any? {
     return objectMapper.readValue(this, javaType)
 }
 
-fun <T> TreeNode.parseAs(type: Type): T? {
+fun <T> TreeNode?.parseAs(type: Type): T? {
+    if (this == null) return null
     val parser = objectMapper.treeAsTokens(this)
     val javaType = objectMapper.typeFactory.constructType(type)
     return objectMapper.readerFor(javaType).readValue(parser) as T?
