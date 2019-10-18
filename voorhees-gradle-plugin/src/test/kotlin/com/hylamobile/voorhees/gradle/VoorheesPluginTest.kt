@@ -38,6 +38,8 @@ class VoorheesPluginTest {
             
             dependencies {
                 compile("com.hylamobile:voorhees-server:0.0.1")
+                compileOnly("org.projectlombok:lombok:1.18.8")
+                annotationProcessor("org.projectlombok:lombok:1.18.8")
             }
             
             repositories {

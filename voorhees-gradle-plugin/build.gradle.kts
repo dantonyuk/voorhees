@@ -21,6 +21,9 @@ dependencies {
 
     testCompileOnly(gradleTestKit())
     testImplementation("junit:junit:4.12")
+
+    testCompileOnly("org.projectlombok:lombok:1.18.8")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.8")
 }
 
 repositories {
