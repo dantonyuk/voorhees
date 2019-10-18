@@ -22,7 +22,7 @@ public class RemoteMovieService {
 
     public void createMovie(Movie movie) {
         if (movieStorage.getMovies().contains(movie)) {
-            throw new AlreadyExistsException("Movie '" + movie.getTitle() + "' already exists");
+            throw new AlreadyExistsException("Movie '" + movie.getTitle() + "' already exists", movie);
         }
 
         movieStorage.getMovies().add(movie);
@@ -30,7 +30,7 @@ public class RemoteMovieService {
 
     public Movie findMovie(String title) {
         if (title == null) {
-            throw new NullObjectException("Title should be defined");
+            throw new NullObjectException("Title should be defined", title);
         }
 
         for (Movie movie : movieStorage.getMovies()) {
@@ -39,7 +39,7 @@ public class RemoteMovieService {
             }
         }
 
-        throw new NotFoundException("Movie '" + title + "' not found");
+        throw new NotFoundException("Movie not found", title);
     }
 
     public List<String> listMovieTitles() {
@@ -64,7 +64,7 @@ public class RemoteMovieService {
         Person found = people()
                 .filter(person -> person.getName().equals(name))
                 .findFirst().orElseThrow(
-                        () -> new NotFoundException("Person " + name + " not found"));
+                        () -> new NotFoundException("Person not found", name));
         List<String> directorOf = movieTitles(m -> m.getDirectors().contains(found));
         List<String> writerOf = movieTitles(m -> m.getWriters().contains(found));
         List<String> actorOf = movieTitles(m -> m.getStars().contains(found));

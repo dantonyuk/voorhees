@@ -1,0 +1,75 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:2.1.6.RELEASE")
+    }
+}
+
+plugins {
+    id("java-library")
+    id("maven-publish")
+    id("voorhees") version "2.0.0-RC3"
+    id("org.springframework.boot") version "2.1.8.RELEASE"
+    id("io.spring.dependency-management") version "1.0.8.RELEASE"
+}
+
+group = "com.hylamobile"
+version = "0.0.2-SNAPSHOT"
+
+voorhees {
+    packagesToScan = ["com.hylamobile.voorhees.example"]
+    artifact = "voorhees-example-client"
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url mavenRepoSnapshotUrl
+        credentials {
+            username mavenRepoUsername
+            password mavenRepoPassword
+        }
+        mavenContent {
+            snapshotsOnly()
+        }
+    }
+    maven {
+        url mavenRepoReleaseUrl
+        credentials {
+            username mavenRepoUsername
+            password mavenRepoPassword
+        }
+        mavenContent {
+            releasesOnly()
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            url mavenRepoSnapshotUrl
+            credentials {
+                username mavenRepoUsername
+                password mavenRepoPassword
+            }
+        }
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-web")
+    api("com.hylamobile:voorhees-server:2.0.0-RC3")
+
+    compileOnly("org.projectlombok:lombok:1.18.8")
+    annotationProcessor("org.projectlombok:lombok:1.18.8")
+
+    testCompile("junit:junit")
+}

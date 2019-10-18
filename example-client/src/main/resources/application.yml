@@ -1,3 +1,10 @@
 spring:
   main:
     web-application-type: NONE
+
+voorhees:
+  client:
+    basePackage: com.hylamobile.voorhees.example.server
+    services:
+      default:
+        endpoint: http://localhost:28888/

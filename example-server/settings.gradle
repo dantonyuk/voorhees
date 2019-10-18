@@ -1,0 +1,21 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        jcenter()
+        mavenCentral()
+        maven {
+            url mavenRepoSnapshotUrl
+            credentials {
+                username mavenRepoUsername
+                password mavenRepoPassword
+            }
+        }
+        maven {
+            url mavenRepoReleaseUrl
+            credentials {
+                username mavenRepoUsername
+                password mavenRepoPassword
+            }
+        }
+    }
+}
