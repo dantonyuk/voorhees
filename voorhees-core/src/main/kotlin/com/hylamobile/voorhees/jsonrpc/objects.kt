@@ -76,7 +76,7 @@ data class Response<R>(
     val jsonrpc: Version = Version.ver2_0) {
 
     companion object {
-        fun <R> success(result: R, id: Id<*>? = null) =
+        fun <R> success(result: R?, id: Id<*>? = null) =
             Response(result = result, id = id)
 
         fun error(error: Error, id: Id<*>? = null) =
