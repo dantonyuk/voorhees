@@ -5,7 +5,7 @@ plugins {
 
 gradlePlugin {
     plugins {
-        create("voorheesPlugin") {
+        create("voorhees") {
             id = "voorhees"
             displayName = "Plugin for generating Voorhees clients"
             description = "Gradle plugin that helps to generate and publish client library for Voorhees services"
@@ -25,4 +25,8 @@ dependencies {
 
 repositories {
     jcenter()
+}
+
+tasks.register("publishPlugin") {
+    dependsOn("publishVoorheesPluginMarkerMavenPublicationToMavenRepository")
 }

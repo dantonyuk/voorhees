@@ -82,5 +82,3 @@ class VoorheesPluginTest {
         assertEquals(SUCCESS, result.task(":$task")?.outcome)
     }
 }
-/*
- */

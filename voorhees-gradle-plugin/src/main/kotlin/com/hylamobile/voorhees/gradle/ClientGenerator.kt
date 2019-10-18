@@ -4,13 +4,13 @@ import com.hylamobile.voorhees.jsonrpc.JsonRpcException
 import com.hylamobile.voorhees.server.annotation.DontExpose
 import com.hylamobile.voorhees.server.annotation.JsonRpcService as ServerJsonRpcService
 import com.hylamobile.voorhees.client.annotation.JsonRpcService as ClientJsonRpcService
+import com.hylamobile.voorhees.gradle.Reflection.publicMethods
 import net.bytebuddy.ByteBuddy
 import net.bytebuddy.description.annotation.AnnotationDescription
 import net.bytebuddy.description.modifier.Visibility
 import org.reflections.Reflections
 import org.reflections.util.ClasspathHelper
 import java.io.File
-import java.lang.reflect.*
 import java.net.URL
 import java.net.URLClassLoader
 
@@ -21,7 +21,7 @@ class ClientGenerator(
 
     private val namingPattern = "%s.%s"
 
-    private val classesToGenerate: MutableSet<Class<*>> = mutableSetOf()
+    private val typeCollector = TypeCollector(packagesToScan)
 
     init {
         genDir.apply {
@@ -57,7 +57,7 @@ class ClientGenerator(
                     .defineMethod(method.name, method.genericReturnType, Visibility.PUBLIC)
                     .withParameters(*method.genericParameterTypes).withoutCode()
 
-                gatherClassesFromMethod(method)
+                typeCollector.collect(method)
             }
 
             remoteInterface.make().saveIn(genDir)
@@ -65,39 +65,10 @@ class ClientGenerator(
 
         val errorClasses = Reflections(packagesToScan, buildClassLoader)
             .getSubTypesOf(JsonRpcException::class.java)
-        errorClasses.forEach(this::classesFrom)
+        errorClasses.forEach(typeCollector::collect)
 
-        classesToGenerate.forEach {
+        typeCollector.collectedClasses.forEach {
             ByteBuddy().rebase(it).make().saveIn(genDir)
         }
     }
-
-    private fun gatherClassesFromMethod(method: Method) {
-        classesFrom(method.genericReturnType)
-        method.genericParameterTypes.asSequence().forEach(this::classesFrom)
-    }
-
-    private fun classesFrom(type: Type?) {
-        if (classesToGenerate.contains(type)) return
-
-        when (type) {
-            is Class<*> -> when {
-                type.isArray -> classesFrom(type.componentType)
-                packagesToScan.any { p -> type.name.startsWith(p) } -> {
-                    classesToGenerate.add(type)
-                    classesFrom(type.genericSuperclass)
-                    type.genericInterfaces.forEach(this::classesFrom)
-                    type.publicMethods.forEach(this::gatherClassesFromMethod)
-                }
-            }
-            is GenericArrayType -> classesFrom(type.genericComponentType)
-            is TypeVariable<*> -> {
-                type.genericDeclaration.typeParameters.forEach(this::classesFrom)
-                type.bounds.asSequence().forEach(this::classesFrom)
-            }
-        }
-    }
-
-    private val Class<*>.publicMethods
-        get() = declaredMethods.filter { Modifier.isPublic(it.modifiers) }
 }

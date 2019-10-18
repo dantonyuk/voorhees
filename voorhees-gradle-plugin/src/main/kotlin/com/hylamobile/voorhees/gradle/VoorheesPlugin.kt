@@ -45,7 +45,7 @@ class VoorheesPlugin @Inject constructor(
             task.from(generateTask.get().genDir)
         }
 
-        if (project.pluginManager.hasPlugin("maven-publish")) {
+        project.plugins.withId("maven-publish") {
             val library = softwareComponentFactory.adhoc("${CLIENT_NAME}Library")
             val elements = project.configurations.create("jsonRpcElements") { conf ->
                 conf.dependencies.add(
@@ -62,24 +62,22 @@ class VoorheesPlugin @Inject constructor(
 
             project.components.add(library)
 
-            project.plugins.withId("maven-publish") {
-                val publishing = project.extensions.getByType(PublishingExtension::class.java)
-                publishing.publications.create(CLIENT_NAME, MavenPublication::class.java) { publication ->
-                    check(publication is DefaultMavenPublication)
+            val publishing = project.extensions.getByType(PublishingExtension::class.java)
+            publishing.publications.create(CLIENT_NAME, MavenPublication::class.java) { publication ->
+                check(publication is DefaultMavenPublication)
 
-                    publication.from(library)
-                    publication.mavenProjectIdentity.apply {
-                        artifactId.set(extension.artifact)
-                        groupId.set(extension.group)
-                        version.set(extension.version)
-                    }
+                publication.from(library)
+                publication.mavenProjectIdentity.apply {
+                    artifactId.set(extension.artifact)
+                    groupId.set(extension.group)
+                    version.set(extension.version)
                 }
+            }
 
-                project.tasks.register("publish$CAPITALIZED_CLIENT_NAME") { task ->
-                    task.dependsOn("publish${CAPITALIZED_CLIENT_NAME}PublicationToMavenRepository")
-                    task.group = "jsonrpc"
-                    task.description = "Publish JSON RPC client to Maven repository"
-                }
+            project.tasks.register("publish$CAPITALIZED_CLIENT_NAME") { task ->
+                task.dependsOn("publish${CAPITALIZED_CLIENT_NAME}PublicationToMavenRepository")
+                task.group = "jsonrpc"
+                task.description = "Publish JSON RPC client to Maven repository"
             }
         }
     }

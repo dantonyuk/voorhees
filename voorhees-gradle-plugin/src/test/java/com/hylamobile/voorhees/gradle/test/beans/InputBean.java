@@ -1,5 +1,7 @@
 package com.hylamobile.voorhees.gradle.test.beans;
 
+import java.util.List;
+
 public class InputBean {
 
     private String stringVar;
@@ -8,6 +10,7 @@ public class InputBean {
     private int intVal;
     private int[] intArray;
     private TestEnum enumVar;
+    private List<IndirectBean> indirectBeans;
 
     public String getStringVar() {
         return stringVar;
@@ -47,5 +50,13 @@ public class InputBean {
 
     public void setEnumVar(TestEnum enumVar) {
         this.enumVar = enumVar;
+    }
+
+    public List<IndirectBean> getIndirectBeans() {
+        return indirectBeans;
+    }
+
+    public void setIndirectBeans(List<IndirectBean> indirectBeans) {
+        this.indirectBeans = indirectBeans;
     }
 }
