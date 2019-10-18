@@ -12,7 +12,7 @@ allprojects {
     }
 
     group = "com.hylamobile"
-    version = "2.0.0-RC1"
+    version = "2.0.0-RC1-SNAPSHOT"
 }
 
 subprojects {
@@ -21,7 +21,7 @@ subprojects {
     apply(plugin = "org.gradle.maven-publish")
     apply(plugin = "org.gradle.signing")
 
-    version = "2.0.0-RC1"
+    version = "2.0.0-RC1-SNAPSHOT"
 
     tasks.dokka {
         outputFormat = "html"
@@ -42,9 +42,11 @@ subprojects {
         from(sourceSets.main.get().allSource)
     }
 
-    val mavenRepoUrl: String by project
+    val mavenRepoReleaseUrl: String by project
+    val mavenRepoSnapshotUrl: String by project
     val mavenRepoUsername: String by project
     val mavenRepoPassword: String by project
+    val mavenRepoUrl = if (project.version.toString().endsWith("SNAPSHOT")) mavenRepoSnapshotUrl else mavenRepoReleaseUrl
 
     publishing {
         publications {
