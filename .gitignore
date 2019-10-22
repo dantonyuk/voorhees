@@ -1,7 +1,9 @@
 .gradle
 build/
+__pycache__
 
 .idea
 *.iws
 *.iml
 *.ipr
+*.pyc
