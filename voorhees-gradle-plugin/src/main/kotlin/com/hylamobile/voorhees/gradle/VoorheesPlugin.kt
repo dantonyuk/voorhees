@@ -49,7 +49,7 @@ class VoorheesPlugin @Inject constructor(
             val library = softwareComponentFactory.adhoc("${CLIENT_NAME}Library")
             val elements = project.configurations.create("jsonRpcElements") { conf ->
                 conf.dependencies.add(
-                    DefaultExternalModuleDependency("com.hylamobile", "voorhees-client", "2.0.0-RC3"))
+                    DefaultExternalModuleDependency("com.hylamobile", "voorhees-client", "2.0.0-RC4"))
                 conf.outgoing.apply {
                     artifacts.add(LazyPublishArtifact(jarTask))
                     @Suppress("UnstableApiUsage")

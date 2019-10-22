@@ -26,5 +26,6 @@ open class InternalErrorException(data: Any? = null) :
     JsonRpcException(ErrorCode.INTERNAL_ERROR.toError(data)) {
 
     // for Java
+    @Suppress("UNUSED")
     constructor() : this(null)
 }

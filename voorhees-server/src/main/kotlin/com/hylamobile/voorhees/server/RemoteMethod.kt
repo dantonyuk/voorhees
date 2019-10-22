@@ -9,12 +9,11 @@ interface RemoteMethod {
 
     fun call(request: Request): Option<Response<*>> {
         val isNotification = request.id == null
-        if (isNotification) {
+        return if (isNotification) {
             notificationExecutor.execute(this, request)
-            return Option.none()
-        }
-        else {
-            return Option.some(invoke(request))
+            Option.none()
+        } else {
+            Option.some(invoke(request))
         }
     }
 

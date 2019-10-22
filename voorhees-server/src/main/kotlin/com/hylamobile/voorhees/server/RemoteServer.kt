@@ -8,9 +8,9 @@ import com.hylamobile.voorhees.util.Option
 
 class RemoteServer(server: Any, private val config: RemoteConfig) {
 
-    val handlerFactory = RemoteHandler.makeFactory(server, config)
+    private val handlerFactory = RemoteHandler.makeFactory(server, config)
 
-    val serverMethods = server.javaClass.methods
+    private val serverMethods = server.javaClass.methods
         .filter { it.getAnnotation(DontExpose::class.java) == null }
         .groupBy { it.name }
         .mapValues { it.value.map(handlerFactory) }
@@ -20,7 +20,7 @@ class RemoteServer(server: Any, private val config: RemoteConfig) {
         return method.call(request)
     }
 
-    fun findMethod(jsonRequest: Request): RemoteMethod {
+    private fun findMethod(jsonRequest: Request): RemoteMethod {
         val methods = serverMethods[jsonRequest.method] ?:
             return ErrorCode.METHOD_NOT_FOUND.toMethod("Method ${jsonRequest.method} not found", config)
 

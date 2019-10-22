@@ -55,9 +55,9 @@ class RemoteHandler(
     override fun invoke(request: Request): Response<Any> {
         val args = convertToArguments(request.params)
 
-        try {
+        return try {
             val result = method.invoke(server, *args)
-            return Response.success(result, request.id)
+            Response.success(result, request.id)
         } catch (ex: InvocationTargetException) {
             ex.printStackTrace()
             val targetEx = ex.targetException
@@ -65,7 +65,7 @@ class RemoteHandler(
                 if (targetEx is JsonRpcException) targetEx.error
                 else ErrorCode.INTERNAL_ERROR.toError(targetEx.message)
 
-            return Response.error(error, request.id)
+            Response.error(error, request.id)
         }
     }
 

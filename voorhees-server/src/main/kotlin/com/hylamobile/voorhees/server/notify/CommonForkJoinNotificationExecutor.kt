@@ -5,6 +5,7 @@ import com.hylamobile.voorhees.server.NotificationExecutor
 import com.hylamobile.voorhees.server.RemoteMethod
 import java.util.concurrent.ForkJoinPool
 
+@Suppress("UNUSED")
 class CommonForkJoinNotificationExecutor : NotificationExecutor {
 
     override fun execute(method: RemoteMethod, request: Request) {

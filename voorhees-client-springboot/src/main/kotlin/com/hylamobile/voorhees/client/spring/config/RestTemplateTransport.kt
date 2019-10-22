@@ -9,7 +9,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.web.client.RestTemplate
 
-class RestTemplateTransport(val restTemplate: RestTemplate, serverConfig: ServerConfig) : Transport(serverConfig) {
+class RestTemplateTransport(private val restTemplate: RestTemplate, serverConfig: ServerConfig) : Transport(serverConfig) {
     override fun getResponseAsString(request: Request): String {
         val httpHeaders = HttpHeaders().apply {
             contentType = MediaType.APPLICATION_JSON
