@@ -29,11 +29,13 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
         "com.hylamobile.voorhees.server.notify.CommonForkJoinNotificationExecutor}")
     private var notificationExecutorClass: String = ""
 
-    private lateinit var remoteServers: Map<String, RemoteServer>
+    private lateinit var config: RemoteConfig
+
+    private lateinit var remoteServers: MutableMap<String, RemoteServer>
 
     @PostConstruct
     fun init() {
-        val config = createConfig()
+        config = createConfig()
         initRemoteServers(config)
     }
 
@@ -56,6 +58,11 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
         }
     }
 
+    fun registerService(service: Any, vararg locations: String) {
+        locations.map { loc -> uriCombine(apiPrefix, loc) to RemoteServer(service, config) }
+            .forEach { (loc, server) -> remoteServers[loc] = server }
+    }
+
     private fun createConfig(): RemoteConfig =
         RemoteConfig(
             object : ParameterNameDiscoverer {
@@ -74,7 +81,7 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
                 val jsonRpcAnno = bean.javaClass.getAnnotation(JsonRpcService::class.java)
                 jsonRpcAnno.locations.map { loc -> uriCombine(apiPrefix, loc) to RemoteServer(bean, config) }
             }
-            .toMap()
+            .toMap().toMutableMap()
     }
 
     private fun findHandler(httpRequest: HttpServletRequest): JsonRpcHandler? {

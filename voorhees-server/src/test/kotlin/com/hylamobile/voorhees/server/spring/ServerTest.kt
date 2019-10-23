@@ -4,11 +4,14 @@ import com.hylamobile.voorhees.jsonrpc.InternalErrorException
 import com.hylamobile.voorhees.server.annotation.DontExpose
 import com.hylamobile.voorhees.server.annotation.JsonRpcService
 import com.hylamobile.voorhees.server.annotation.Param
+import com.hylamobile.voorhees.server.spring.webmvc.JsonRpcHandlerMapping
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
+import javax.annotation.PostConstruct
 
 @JsonRpcService(["/test"])
 @Suppress("UNUSED")
@@ -50,9 +53,18 @@ class SecuredService {
     fun secret() = "password"
 }
 
+@Suppress("UNUSED")
+class ManuallyRegisteredService {
+
+    fun ping() = "pong"
+}
+
 @Configuration
 @EnableWebSecurity
 open class WebSecurityConfig : WebSecurityConfigurerAdapter() {
+    @Autowired
+    private lateinit var jsonRpcMapping: JsonRpcHandlerMapping
+
     override fun configure(http: HttpSecurity) {
         http
             .csrf().disable()
@@ -66,6 +78,11 @@ open class WebSecurityConfig : WebSecurityConfigurerAdapter() {
         auth.inMemoryAuthentication()
             .withUser("admin").password("{noop}password").roles("ADMIN").and()
             .withUser("user").password("{noop}password").roles("USER")
+    }
+
+    @PostConstruct
+    fun init() {
+        jsonRpcMapping.registerService(ManuallyRegisteredService(), "/manual")
     }
 }
 

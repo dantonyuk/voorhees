@@ -504,6 +504,21 @@ class TestServiceTest {
             .andExpect(jsonPath("$").doesNotExist())
     }
 
+    @Test
+    fun `manually registered service should respond`() {
+        val request = Request("ping", null, NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/manual")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(request.jsonString))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("result").value(`is`("pong")))
+            .andExpect(jsonPath("error").value(nullValue()))
+            .andExpect(jsonPath("id").value(`is`(1)))
+            .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
+    }
+
     fun MockHttpServletRequestBuilder.basicAuth(username: String, password: String): MockHttpServletRequestBuilder =
         header("Authorization",
             "Basic ${Base64Utils.encodeToString("$username:$password".toByteArray(Charsets.UTF_8))}")
