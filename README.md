@@ -73,6 +73,19 @@ public class MyService {
 }
 ```
 
+In case you want to register services programmatically, there is a way
+to do that:
+
+```java
+@Autowired
+private JsonRpcHandlerMapping jsonRpcMapping;
+
+jsonRpcMapping.registerService(new MyService(), "/my");
+```
+
+It could be helpful if you prefer to not use annotations, or it's just
+impossible 'cause a service is a third-party class.
+
 ### Named Parameters
 
 Since JSON RPC supports named parameters for RPC method, Voorhees uses
