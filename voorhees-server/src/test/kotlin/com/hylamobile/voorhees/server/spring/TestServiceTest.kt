@@ -519,6 +519,72 @@ class TestServiceTest {
             .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
     }
 
+    @Test
+    fun `get method is not allowed`() {
+        val request = Request("plus", ByPositionParams(3, 4), NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(request.jsonString))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isMethodNotAllowed)
+    }
+
+    @Test
+    fun `put method is not allowed`() {
+        val request = Request("plus", ByPositionParams(3, 4), NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(request.jsonString))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isMethodNotAllowed)
+    }
+
+    @Test
+    fun `patch method is not allowed`() {
+        val request = Request("plus", ByPositionParams(3, 4), NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(request.jsonString))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isMethodNotAllowed)
+    }
+
+    @Test
+    fun `delete method is not allowed`() {
+        val request = Request("plus", ByPositionParams(3, 4), NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(request.jsonString))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isMethodNotAllowed)
+    }
+
+    @Test
+    fun `content_type text_xml is not supported`() {
+        val request = Request("plus", ByPositionParams(3, 4), NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
+            .contentType(MediaType.TEXT_XML)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(request.jsonString))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isUnsupportedMediaType)
+    }
+
+    @Test
+    fun `accept text_xml is not supported`() {
+        val request = Request("plus", ByPositionParams(3, 4), NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.TEXT_XML)
+            .content(request.jsonString))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isNotAcceptable)
+    }
+
     fun MockHttpServletRequestBuilder.basicAuth(username: String, password: String): MockHttpServletRequestBuilder =
         header("Authorization",
             "Basic ${Base64Utils.encodeToString("$username:$password".toByteArray(Charsets.UTF_8))}")
