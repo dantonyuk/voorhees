@@ -10,7 +10,6 @@ import com.hylamobile.voorhees.util.uriCombine
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.DefaultParameterNameDiscoverer
 import org.springframework.core.Ordered
-import org.springframework.http.InvalidMediaTypeException
 import org.springframework.http.MediaType
 import org.springframework.web.servlet.handler.AbstractHandlerMapping
 import java.lang.reflect.Method
@@ -45,20 +44,12 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
     override fun getHandlerInternal(httpRequest: HttpServletRequest): Any? {
         val remoteServer = remoteServers[httpRequest.realPath] ?: return null
 
-        fun contentType() =
-            try { MediaType.valueOf(httpRequest.contentType) }
-            catch (ex: InvalidMediaTypeException) { null }
-
-        fun accept() = MediaType.parseMediaTypes(httpRequest.getHeader("Accept"))
-
-        fun MediaType.compatibleWithJson() = isCompatibleWith(MediaType.APPLICATION_JSON)
-
         return when {
             httpRequest.method != "POST" ->
                 ErrorHandler(SC_METHOD_NOT_ALLOWED)
-            !(contentType()?.compatibleWithJson() ?: true) ->
+            !(httpRequest.contentMediaType?.isJsonCompatible ?: true) ->
                 ErrorHandler(SC_UNSUPPORTED_MEDIA_TYPE)
-            accept().none { mediaType -> mediaType.compatibleWithJson() } ->
+            httpRequest.acceptedMediaTypes.none { it.isJsonCompatible } ->
                 ErrorHandler(SC_NOT_ACCEPTABLE, MediaType.APPLICATION_JSON_VALUE)
             else -> {
                 val jsonRequest: Request = httpRequest.jsonRequest
