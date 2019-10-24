@@ -16,6 +16,7 @@ import org.springframework.web.servlet.handler.AbstractHandlerMapping
 import java.lang.reflect.Method
 import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse.*
 
 class JsonRpcHandlerMapping : AbstractHandlerMapping() {
 
@@ -42,6 +43,8 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
     override fun getOrder(): Int = _order
 
     override fun getHandlerInternal(httpRequest: HttpServletRequest): Any? {
+        val remoteServer = remoteServers[httpRequest.realPath] ?: return null
+
         fun contentType() =
             try { MediaType.valueOf(httpRequest.contentType) }
             catch (ex: InvalidMediaTypeException) { null }
@@ -51,10 +54,17 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
         fun MediaType.compatibleWithJson() = isCompatibleWith(MediaType.APPLICATION_JSON)
 
         return when {
-            httpRequest.method != "POST" -> null
-            !(contentType()?.compatibleWithJson() ?: true) -> null
-            accept().none { mediaType -> mediaType.compatibleWithJson() } -> null
-            else -> findHandler(httpRequest)
+            httpRequest.method != "POST" ->
+                ErrorHandler(SC_METHOD_NOT_ALLOWED)
+            !(contentType()?.compatibleWithJson() ?: true) ->
+                ErrorHandler(SC_UNSUPPORTED_MEDIA_TYPE)
+            accept().none { mediaType -> mediaType.compatibleWithJson() } ->
+                ErrorHandler(SC_NOT_ACCEPTABLE, MediaType.APPLICATION_JSON_VALUE)
+            else -> {
+                val jsonRequest: Request = httpRequest.jsonRequest
+                val jsonResponse = remoteServer.call(jsonRequest)
+                JsonRpcHandler(jsonResponse.getOrNull)
+            }
         }
     }
 
@@ -82,12 +92,5 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
                 jsonRpcAnno.locations.map { loc -> uriCombine(apiPrefix, loc) to RemoteServer(bean, config) }
             }
             .toMap().toMutableMap()
-    }
-
-    private fun findHandler(httpRequest: HttpServletRequest): JsonRpcHandler? {
-        val remoteServer = remoteServers[httpRequest.realPath] ?: return null
-        val jsonRequest: Request = httpRequest.jsonRequest
-        val jsonResponse = remoteServer.call(jsonRequest)
-        return JsonRpcHandler(jsonResponse.getOrNull)
     }
 }
