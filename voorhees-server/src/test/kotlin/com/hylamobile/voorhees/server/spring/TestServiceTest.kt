@@ -583,9 +583,10 @@ class TestServiceTest {
             .content(request.jsonString))
             .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isNotAcceptable)
+            .andExpect(content().string(MediaType.APPLICATION_JSON_VALUE))
     }
 
-    fun MockHttpServletRequestBuilder.basicAuth(username: String, password: String): MockHttpServletRequestBuilder =
+    private fun MockHttpServletRequestBuilder.basicAuth(username: String, password: String): MockHttpServletRequestBuilder =
         header("Authorization",
             "Basic ${Base64Utils.encodeToString("$username:$password".toByteArray(Charsets.UTF_8))}")
 }
