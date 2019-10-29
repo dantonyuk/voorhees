@@ -23,7 +23,7 @@ val HttpServletRequest.contentMediaType
         try { MediaType.valueOf(contentType) }
         catch (ex: InvalidMediaTypeException) { null }
 
-val HttpServletRequest.acceptedMediaTypes
+val HttpServletRequest.acceptedMediaTypes: List<MediaType>
     get() = MediaType.parseMediaTypes(getHeader("Accept"))
 
 val MediaType.isJsonCompatible

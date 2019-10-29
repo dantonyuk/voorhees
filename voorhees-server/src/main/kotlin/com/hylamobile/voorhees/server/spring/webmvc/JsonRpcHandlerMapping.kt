@@ -44,6 +44,20 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
     override fun getHandlerInternal(httpRequest: HttpServletRequest): Any? {
         val remoteServer = remoteServers[httpRequest.realPath] ?: return null
 
+        return httpRequest.run {
+            when {
+                method != "POST" ->
+                    ErrorHandler(SC_METHOD_NOT_ALLOWED)
+                !(contentMediaType?.isJsonCompatible ?: true) ->
+                    ErrorHandler(SC_UNSUPPORTED_MEDIA_TYPE)
+                acceptedMediaTypes.none { it.isJsonCompatible } ->
+                    ErrorHandler(SC_NOT_ACCEPTABLE, MediaType.APPLICATION_JSON_VALUE)
+                else -> {
+                    val jsonResponse = remoteServer.call(jsonRequest)
+                    JsonRpcHandler(jsonResponse.getOrNull)
+                }
+            }
+        }
         return when {
             httpRequest.method != "POST" ->
                 ErrorHandler(SC_METHOD_NOT_ALLOWED)
