@@ -55,39 +55,16 @@ class JsonRpcMethod:
         self._method = method
 
     def __call__(self, *args, **kwargs):
-        params = args and args or kwargs
-        return self._client._post({
-            "id": 1,
-            "jsonrpc": "2.0",
-            "method": self._method,
-            "params": params
-        })
+        return self._client._post(__json_request(self._method, __params(*args, **kwargs), id=1)
 
     def notify(*args, **kwargs):
-        params = args and args or kwargs
-        return self._client._post({
-            "jsonrpc": "2.0",
-            "method": self._method,
-            "params": params
-        })
+        return self._client._post(__json_request(self._method, __params(*args, **kwargs)))
 
     def curl(self, *args, **kwargs):
-        params = args and args or kwargs
-        return self._client._curl({
-            "id": 1,
-            "jsonrpc": "2.0",
-            "method": self._method,
-            "params": params
-        })
+        return self._client._curl(__json_request(self._method, __params(*args, **kwargs), id=1))
 
     def httpie(self, *args, **kwargs):
-        params = args and args or kwargs
-        return self._client._httpie({
-            "id": 1,
-            "jsonrpc": "2.0",
-            "method": self._method,
-            "params": params
-        })
+        return self._client._httpie(__json_request(self._method, __params(*args, **kwargs), id=1))
 
 
 class JsonRpcBatch:
@@ -98,20 +75,11 @@ class JsonRpcBatch:
 
     def call(self, method, params):
         self.seq += 1
-        self.batch.append({
-            "id": self.seq,
-            "jsonrpc": "2.0",
-            "method": method,
-            "params": params
-        })
+        self.batch.append(__json_request(methods, params, self.seq))
         return self
 
     def notify(self, method, params):
-        self.batch.append({
-            "jsonrpc": "2.0",
-            "method": method,
-            "params": params
-        })
+        self.batch.append(__json_request(methods, params))
         return self
 
     def __getattr__(self, attr):
@@ -133,12 +101,23 @@ class JsonRpcBatchMethod:
         self._method = method
 
     def __call__(self, *args, **kwargs):
-        params = args and args or kwargs
-        return self._batch.call(self._method, params)
+        return self._batch.call(self._method, __params(*args, **kwargs))
 
     def notify(self, *args, **kwargs):
-        params = args and args or kwargs
-        return self._batch.notify(self._method, params)
+        return self._batch.notify(self._method, __params(*args, **kwargs))
+
+
+def __params(*args, **kwargs):
+    return args and args or kwargs
+
+
+def __json_request(method, params=None, id=None):
+    return {
+        "id": id,
+        "jsonrpc": "2.0",
+        "method": method,
+        "params": params
+    }
 
 
 class DictAdapter:
