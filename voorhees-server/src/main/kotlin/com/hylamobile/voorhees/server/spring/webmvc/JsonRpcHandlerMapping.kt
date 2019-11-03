@@ -1,6 +1,5 @@
 package com.hylamobile.voorhees.server.spring.webmvc
 
-import com.hylamobile.voorhees.jsonrpc.Request
 import com.hylamobile.voorhees.server.NotificationExecutor
 import com.hylamobile.voorhees.server.RemoteConfig
 import com.hylamobile.voorhees.server.RemoteServer
@@ -46,29 +45,18 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
 
         return httpRequest.run {
             when {
-                method != "POST" ->
+                method !in OptionsHandler.ALLOWED_METHODS ->
                     ErrorHandler(SC_METHOD_NOT_ALLOWED)
                 !(contentMediaType?.isJsonCompatible ?: true) ->
                     ErrorHandler(SC_UNSUPPORTED_MEDIA_TYPE)
                 acceptedMediaTypes.none { it.isJsonCompatible } ->
                     ErrorHandler(SC_NOT_ACCEPTABLE, MediaType.APPLICATION_JSON_VALUE)
+                method == "OPTIONS" ->
+                    OptionsHandler()
                 else -> {
                     val jsonResponse = remoteServer.call(jsonRequest)
                     JsonRpcHandler(jsonResponse.getOrNull)
                 }
-            }
-        }
-        return when {
-            httpRequest.method != "POST" ->
-                ErrorHandler(SC_METHOD_NOT_ALLOWED)
-            !(httpRequest.contentMediaType?.isJsonCompatible ?: true) ->
-                ErrorHandler(SC_UNSUPPORTED_MEDIA_TYPE)
-            httpRequest.acceptedMediaTypes.none { it.isJsonCompatible } ->
-                ErrorHandler(SC_NOT_ACCEPTABLE, MediaType.APPLICATION_JSON_VALUE)
-            else -> {
-                val jsonRequest: Request = httpRequest.jsonRequest
-                val jsonResponse = remoteServer.call(jsonRequest)
-                JsonRpcHandler(jsonResponse.getOrNull)
             }
         }
     }

@@ -564,6 +564,23 @@ class TestServiceTest {
     }
 
     @Test
+    fun `options method should return allowed methods`() {
+        mockMvc.perform(MockMvcRequestBuilders.options("/api/test")
+            .accept(MediaType.APPLICATION_JSON))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isNoContent)
+            .andExpect(header().string("Allow", "OPTIONS, POST"))
+    }
+
+    @Test
+    fun `options method with wrong accept header should fail`() {
+        mockMvc.perform(MockMvcRequestBuilders.options("/api/test")
+            .accept(MediaType.APPLICATION_XML))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isNotAcceptable)
+    }
+
+    @Test
     fun `content_type text_xml is not supported`() {
         val request = Request("plus", ByPositionParams(3, 4), NumberId(1))
         mockMvc.perform(MockMvcRequestBuilders.post("/api/test")
