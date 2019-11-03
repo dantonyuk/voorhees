@@ -10,7 +10,7 @@ buildscript {
 plugins {
     id("java-library")
     id("maven-publish")
-    id("voorhees") version "2.0.0-RC4"
+    id("voorhees") version "2.0.0"
     id("org.springframework.boot") version "2.1.8.RELEASE"
     id("io.spring.dependency-management") version "1.0.8.RELEASE"
 }
@@ -66,7 +66,7 @@ java {
 
 dependencies {
     compile("org.springframework.boot:spring-boot-starter-web")
-    api("com.hylamobile:voorhees-server:2.0.0-RC4")
+    api("com.hylamobile:voorhees-server:2.0.0")
 
     compileOnly("org.projectlombok:lombok:1.18.8")
     annotationProcessor("org.projectlombok:lombok:1.18.8")

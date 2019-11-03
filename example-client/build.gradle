@@ -45,8 +45,8 @@ java {
 }
 
 dependencies {
-    api("com.hylamobile:voorhees-client-springboot:2.0.0-RC3")
-    api("com.hylamobile:voorhees-client-fuel:2.0.0-RC3")
+    api("com.hylamobile:voorhees-client-springboot:2.0.0")
+    api("com.hylamobile:voorhees-client-fuel:2.0.0")
     api("com.hylamobile:voorhees-example-client:0.0.2-SNAPSHOT")
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("com.fasterxml.jackson.core:jackson-core:2.9.9")
