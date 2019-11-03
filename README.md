@@ -331,7 +331,7 @@ you may take an advantage of remote services auto-registration:
 
 ```groovy
 dependencies {
-	compile("com.hylamobile:voorhees-client-springboot:2.0.0")
+	compile("com.hylamobile:voorhees-client-springboot:2.1.0")
     // ...
 }
 ```
@@ -422,7 +422,7 @@ Since your application uses `voorhees-server` it should be defined in
 dependencies:
 ```groovy
 dependencies {
-	compile("com.hylamobile:voorhees-server:2.0.0")
+	compile("com.hylamobile:voorhees-server:2.1.0")
 	// other deps: spring etc.
 }
 ```
