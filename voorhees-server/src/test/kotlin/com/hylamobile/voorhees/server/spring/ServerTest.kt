@@ -90,6 +90,7 @@ open class WebSecurityConfig : WebSecurityConfigurerAdapter() {
     @PostConstruct
     fun init() {
         jsonRpcMapping.registerService(ManuallyRegisteredService(), "/manual")
+        jsonRpcMapping.registerService(ManuallyRegisteredService(), "/manual-prefix", "manual")
     }
 }
 

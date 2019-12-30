@@ -61,12 +61,9 @@ class JsonRpcHandlerMapping : AbstractHandlerMapping() {
         }
     }
 
-    fun registerService(service: Any, vararg locations: String, prefix: String = "") {
-        locations.map { loc ->
-            uriCombine(apiPrefix, loc) to RemoteServer(service, config.withPrefix(prefix))
-        }.forEach {
-            (loc, server) -> remoteServers[loc] = server
-        }
+    fun registerService(service: Any, location: String, prefix: String = "") {
+        val loc = uriCombine(apiPrefix, location)
+        remoteServers[loc] = RemoteServer(service, config.withPrefix(prefix))
     }
 
     private fun createConfig(): RemoteConfig =
