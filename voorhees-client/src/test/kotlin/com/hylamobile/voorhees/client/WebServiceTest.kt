@@ -39,6 +39,12 @@ class WebServiceTest {
             @Suppress("UNUSED")
             constructor() : this("", 0)
         }
+
+        @JsonRpcService(location = "/prefix-test", prefix = "prefix")
+        interface PrefixedRemoteService {
+
+            fun ping(): String
+        }
     }
 
     private val localServerPort: Int = 37143
@@ -244,6 +250,21 @@ class WebServiceTest {
         }
 
         fail()
+    }
+
+    @Test
+    fun `with-prefix call should work`() {
+        mockServer.`when`(request()
+            .withMethod("POST")
+            .withPath("/prefix-test")
+            .withBody("{\"method\":\"prefix.ping\",\"params\":null,\"id\":1,\"jsonrpc\":\"2.0\"}"))
+            .respond(response()
+                .withStatusCode(200)
+                .withBody("{\"result\":\"pong\",\"error\":null,\"id\":1,\"jsonrpc\":\"2.0\"}"))
+
+        val testService = client.getService(PrefixedRemoteService::class.java)
+        val result = testService.ping()
+        assertEquals("pong", result)
     }
 
     class UserException(data: List<Int>) : JsonRpcException(Error(CODE, "User exception", data)) {
