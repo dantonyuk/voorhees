@@ -9,6 +9,7 @@ services in Spring applications in a quite fast and seamless way.
 
   * [Installation](#installation)
   * [Services](#services)
+    * [Renaming Methods](#renaming-methods)
     * [Named Parameters](#named-parameters)
     * [Default Values](#default-values)
     * [Endpoint Prefix](#endpoint-prefix)
@@ -85,6 +86,25 @@ jsonRpcMapping.registerService(new MyService(), "/my");
 
 It could be helpful if you prefer to not use annotations, or it's just
 impossible 'cause a service is a third-party class.
+
+### Renaming Methods
+
+By default the Java method name is used by JSON RPC. However, it is
+possible to change it.
+
+For example, one can add prefix to all exposed methods of a particular
+service:
+
+```java
+@JsonRpcService(location = "/my", prefix = "mine")
+public class MyService {
+
+    public Person getMe() {
+        return ME;
+    }
+```
+
+The method name in this case will be "mine.getMe" not "getMe".
 
 ### Named Parameters
 
