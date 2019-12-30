@@ -39,10 +39,11 @@ class ClientGenerator(
             .getTypesAnnotatedWith(ServerJsonRpcService::class.java)
 
         for (serviceClass in serviceClasses) {
-            val location = serviceClass.getAnnotation(ServerJsonRpcService::class.java).locations[0]
+            val serverAnno = serviceClass.getAnnotation(ServerJsonRpcService::class.java)
             val jsonRpcServiceAnno = AnnotationDescription.Builder
                 .ofType(ClientJsonRpcService::class.java)
-                .define("location", location)
+                .define("location", serverAnno.locations[0])
+                .define("prefix", serverAnno.prefix)
                 .build()
 
             var remoteInterface = ByteBuddy().makeInterface()
