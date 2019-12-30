@@ -603,6 +603,40 @@ class TestServiceTest {
             .andExpect(content().string(MediaType.APPLICATION_JSON_VALUE))
     }
 
+    @Test
+    fun `call method with default prefix should succeed`() {
+        val request = Request("test.plus", ByPositionParams(3, 4), NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/prefix")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(request.jsonString))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("result").value(`is`(7)))
+            .andExpect(jsonPath("error").value(nullValue()))
+            .andExpect(jsonPath("id").value(`is`(1)))
+            .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
+    }
+
+    @Test
+    fun `call method without default prefix should fail`() {
+        val request = Request("plus", ByPositionParams(3, 4), NumberId(1))
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/prefix")
+            .contentType(MediaType.APPLICATION_JSON_UTF8)
+            .accept(MediaType.APPLICATION_JSON)
+            .content(request.jsonString))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isOk)
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("result").value(nullValue()))
+            .andExpect(jsonPath("error.code").value(`is`(-32601)))
+            .andExpect(jsonPath("error.message").value(`is`("Method not found")))
+            .andExpect(jsonPath("error.data").value(`is`("Method plus not found")))
+            .andExpect(jsonPath("id").value(`is`(1)))
+            .andExpect(jsonPath("jsonrpc").value(`is`("2.0")))
+    }
+
     private fun MockHttpServletRequestBuilder.basicAuth(username: String, password: String): MockHttpServletRequestBuilder =
         header("Authorization",
             "Basic ${Base64Utils.encodeToString("$username:$password".toByteArray(Charsets.UTF_8))}")

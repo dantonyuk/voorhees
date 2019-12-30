@@ -59,6 +59,13 @@ class ManuallyRegisteredService {
     fun ping() = "pong"
 }
 
+@Suppress("UNUSED")
+@JsonRpcService(["/prefix"], prefix = "test")
+class PrefixedService {
+
+    fun plus(a: Int, b: Int) = a + b
+}
+
 @Configuration
 @EnableWebSecurity
 open class WebSecurityConfig : WebSecurityConfigurerAdapter() {
