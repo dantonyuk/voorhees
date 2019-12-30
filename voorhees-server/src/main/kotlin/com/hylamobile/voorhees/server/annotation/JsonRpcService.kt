@@ -6,4 +6,6 @@ import org.springframework.stereotype.Component
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
 @Component
-annotation class JsonRpcService(val locations: Array<String>)
+annotation class JsonRpcService(
+    val locations: Array<String>,
+    val prefix: String = "")
