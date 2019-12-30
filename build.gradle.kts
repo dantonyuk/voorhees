@@ -12,7 +12,7 @@ allprojects {
     }
 
     group = "com.hylamobile"
-    version = "2.1.0"
+    version = "3.0.0-RC1"
 }
 
 subprojects {
