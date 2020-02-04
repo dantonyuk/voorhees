@@ -130,9 +130,9 @@ class DictAdapter:
 
     @staticmethod
     def create(obj):
-        if isinstance(obj,DictAdapter):
+        if isinstance(obj, DictAdapter):
             return obj
-        if isinstance(obj, dict) or isinstance(obj, list):
+        if isinstance(obj, (dict, list)):
             return DictAdapter(obj)
         return obj
 
