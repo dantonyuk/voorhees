@@ -4,15 +4,19 @@ import com.hylamobile.voorhees.jsonrpc.ErrorCode
 import com.hylamobile.voorhees.jsonrpc.Request
 import com.hylamobile.voorhees.jsonrpc.Response
 import com.hylamobile.voorhees.server.annotation.DontExpose
+import com.hylamobile.voorhees.server.annotation.JsonRpcMethod
 import com.hylamobile.voorhees.util.Option
+import java.lang.reflect.Method
 
-class RemoteServer(server: Any, private val config: RemoteConfig) {
+class RemoteServer(
+    server: Any,
+    private val config: RemoteConfig) {
 
     private val handlerFactory = RemoteHandler.makeFactory(server, config)
 
     private val serverMethods = server.javaClass.methods
         .filter { it.getAnnotation(DontExpose::class.java) == null }
-        .groupBy { it.name }
+        .groupBy { findMethodName(it) }
         .mapValues { it.value.map(handlerFactory) }
 
     fun call(request: Request): Option<Response<*>> {
@@ -36,4 +40,14 @@ class RemoteServer(server: Any, private val config: RemoteConfig) {
 
     private fun pickBestMethod(methods: List<RemoteMethod>, @Suppress("UNUSED_PARAMETER") jsonRequest: Request) =
         methods[0]
+
+    private fun findMethodName(method: Method): String {
+        val methodAnno = method.getAnnotation(JsonRpcMethod::class.java)
+        val remoteMethodName = methodAnno?.name ?: ""
+        return when {
+            remoteMethodName != "" -> remoteMethodName
+            config.prefix == "" -> method.name
+            else -> "${config.prefix}.${method.name}"
+        }
+    }
 }

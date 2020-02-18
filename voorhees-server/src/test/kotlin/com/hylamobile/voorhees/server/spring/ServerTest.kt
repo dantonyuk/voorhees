@@ -2,6 +2,7 @@ package com.hylamobile.voorhees.server.spring
 
 import com.hylamobile.voorhees.jsonrpc.InternalErrorException
 import com.hylamobile.voorhees.server.annotation.DontExpose
+import com.hylamobile.voorhees.server.annotation.JsonRpcMethod
 import com.hylamobile.voorhees.server.annotation.JsonRpcService
 import com.hylamobile.voorhees.server.annotation.Param
 import com.hylamobile.voorhees.server.spring.webmvc.JsonRpcHandlerMapping
@@ -59,6 +60,16 @@ class ManuallyRegisteredService {
     fun ping() = "pong"
 }
 
+@Suppress("UNUSED")
+@JsonRpcService(["/prefix"], prefix = "test")
+class PrefixedService {
+
+    fun plus(a: Int, b: Int) = a + b
+
+    @JsonRpcMethod("math.diff")
+    fun minus(a: Int, b: Int) = a - b
+}
+
 @Configuration
 @EnableWebSecurity
 open class WebSecurityConfig : WebSecurityConfigurerAdapter() {
@@ -83,6 +94,7 @@ open class WebSecurityConfig : WebSecurityConfigurerAdapter() {
     @PostConstruct
     fun init() {
         jsonRpcMapping.registerService(ManuallyRegisteredService(), "/manual")
+        jsonRpcMapping.registerService(ManuallyRegisteredService(), "/manual-prefix", "manual")
     }
 }
 

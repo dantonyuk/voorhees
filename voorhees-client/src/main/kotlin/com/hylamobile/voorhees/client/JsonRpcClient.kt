@@ -1,5 +1,6 @@
 package com.hylamobile.voorhees.client
 
+import com.hylamobile.voorhees.client.annotation.JsonRpcMethod
 import com.hylamobile.voorhees.client.annotation.JsonRpcService
 import com.hylamobile.voorhees.client.annotation.Param
 import com.hylamobile.voorhees.jsonrpc.*
@@ -33,19 +34,22 @@ open class JsonRpcClient(private val transportGroup: TransportGroup) {
         requireNotNull(anno) { "Class ${type.name} should be annotated with JsonRpcService annotation" }
         check(anno.location.isNotEmpty()) { "@JsonRpcService on ${type.name} should have location set" }
 
-        return getService(anno.location, type)
+        return getService(anno.location, anno.prefix, type)
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T> getService(location: String, type: Class<T>): T =
+    fun <T> getService(location: String, prefix: String, type: Class<T>): T =
         Proxy.newProxyInstance(type.classLoader, arrayOf(type),
-            ServiceProxy(transportGroup(location))) as T
+            ServiceProxy(prefix, transportGroup(location))) as T
 
     fun <T : JsonRpcException> registerException(exClass: Class<T>) {
         errorRegistrar.registerException(exClass)
     }
 
-    inner class ServiceProxy(private val transport: Transport) : InvocationHandler {
+    inner class ServiceProxy(
+        private val prefix: String,
+        private val transport: Transport
+    ) : InvocationHandler {
         override fun invoke(proxy: Any?, method: Method, args: Array<out Any?>?): Any? {
             // for debugger
             if (method.name == "toString") {
@@ -68,6 +72,14 @@ open class JsonRpcClient(private val transportGroup: TransportGroup) {
 
             fun onlyNamedParameters() = method.parameters.all { it.paramAnno() != null }
 
+            val methodAnno = method.getAnnotation(JsonRpcMethod::class.java)
+            val remoteMethodName = methodAnno?.name ?: ""
+            val methodName = when {
+                remoteMethodName != "" -> remoteMethodName
+                prefix == "" -> method.name
+                else -> "$prefix.${method.name}"
+            }
+
             val params = when {
                 args == null -> null
                 onlyNamedParameters() ->
@@ -79,7 +91,7 @@ open class JsonRpcClient(private val transportGroup: TransportGroup) {
                     ByPositionParams(args.asJsonSeq().toList())
             }
 
-            return Request(method = method.name, params = params, id = NumberId(1))
+            return Request(method = methodName, params = params, id = NumberId(1))
         }
     }
 }

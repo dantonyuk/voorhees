@@ -2,7 +2,9 @@ package com.hylamobile.voorhees.gradle
 
 import com.hylamobile.voorhees.jsonrpc.JsonRpcException
 import com.hylamobile.voorhees.server.annotation.DontExpose
+import com.hylamobile.voorhees.server.annotation.JsonRpcMethod as ServerJsonRpcMethod
 import com.hylamobile.voorhees.server.annotation.JsonRpcService as ServerJsonRpcService
+import com.hylamobile.voorhees.client.annotation.JsonRpcMethod as ClientJsonRpcMethod
 import com.hylamobile.voorhees.client.annotation.JsonRpcService as ClientJsonRpcService
 import com.hylamobile.voorhees.gradle.Reflection.publicMethods
 import net.bytebuddy.ByteBuddy
@@ -39,23 +41,33 @@ class ClientGenerator(
             .getTypesAnnotatedWith(ServerJsonRpcService::class.java)
 
         for (serviceClass in serviceClasses) {
-            val location = serviceClass.getAnnotation(ServerJsonRpcService::class.java).locations[0]
+            val serverAnno = serviceClass.getAnnotation(ServerJsonRpcService::class.java)
             val jsonRpcServiceAnno = AnnotationDescription.Builder
                 .ofType(ClientJsonRpcService::class.java)
-                .define("location", location)
+                .define("location", serverAnno.locations[0])
+                .define("prefix", serverAnno.prefix)
                 .build()
 
+            val interfaceName = namingPattern.format(serviceClass.`package`.name, serviceClass.simpleName)
             var remoteInterface = ByteBuddy().makeInterface()
-                .name(namingPattern.format(serviceClass.`package`.name, serviceClass.simpleName))
+                .name(interfaceName)
                 .annotateType(jsonRpcServiceAnno)
                 .merge(Visibility.PUBLIC)
 
             for (method in serviceClass.publicMethods) {
                 if (method.isAnnotationPresent(DontExpose::class.java)) continue
 
-                remoteInterface = remoteInterface
+                val methodDef = remoteInterface
                     .defineMethod(method.name, method.genericReturnType, Visibility.PUBLIC)
-                    .withParameters(*method.genericParameterTypes).withoutCode()
+                    .withParameters(*method.genericParameterTypes)
+                    .withoutCode()
+
+                remoteInterface = method.getAnnotation(ServerJsonRpcMethod::class.java)?.let {
+                    methodDef.annotateMethod(
+                        AnnotationDescription.Builder.ofType(ClientJsonRpcMethod::class.java)
+                            .define("name", it.name)
+                            .build())
+                } ?: methodDef
 
                 typeCollector.collect(method)
             }

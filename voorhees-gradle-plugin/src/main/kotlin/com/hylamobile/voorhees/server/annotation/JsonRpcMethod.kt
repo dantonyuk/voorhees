@@ -3,9 +3,8 @@ package com.hylamobile.voorhees.server.annotation
 /**
  * Just a fake annotation to not depend on voorhees-server
  */
-@Target(AnnotationTarget.CLASS)
+@Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
 @MustBeDocumented
-annotation class JsonRpcService(
-    val locations: Array<String>,
-    val prefix: String = "")
+annotation class JsonRpcMethod(
+    val name: String = "")
