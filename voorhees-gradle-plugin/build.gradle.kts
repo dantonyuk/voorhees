@@ -17,7 +17,7 @@ gradlePlugin {
 dependencies {
     compileOnly(gradleApi())
     api("org.reflections:reflections:0.9.11")
-    api("net.bytebuddy:byte-buddy:1.10.1")
+    api("net.bytebuddy:byte-buddy:1.10.8")
 
     testCompileOnly(gradleTestKit())
     testImplementation("junit:junit:4.12")
