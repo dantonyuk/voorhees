@@ -4,6 +4,7 @@ import com.hylamobile.voorhees.jsonrpc.ErrorCode
 import com.hylamobile.voorhees.jsonrpc.Request
 import com.hylamobile.voorhees.jsonrpc.Response
 import com.hylamobile.voorhees.server.annotation.DontExpose
+import com.hylamobile.voorhees.server.annotation.JsonRpcMethod
 import com.hylamobile.voorhees.util.Option
 import java.lang.reflect.Method
 
@@ -41,7 +42,10 @@ class RemoteServer(
         methods[0]
 
     private fun findMethodName(method: Method): String {
+        val methodAnno = method.getAnnotation(JsonRpcMethod::class.java)
+        val remoteMethodName = methodAnno?.name ?: ""
         return when {
+            remoteMethodName != "" -> remoteMethodName
             config.prefix == "" -> method.name
             else -> "${config.prefix}.${method.name}"
         }
