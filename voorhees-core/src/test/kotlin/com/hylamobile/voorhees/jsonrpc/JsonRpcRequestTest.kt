@@ -140,7 +140,7 @@ class JsonRpcRequestTest {
             block()
         }
         catch (ex: Throwable) {
-            throw (ex.cause ?: ex)
+            throw ex.cause ?: ex
         }
     }
 }

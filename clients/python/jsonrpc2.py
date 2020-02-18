@@ -25,14 +25,14 @@ class JsonRpcClient:
             self._req_kwargs["headers"]["Content-Type"] = "application/json;charset=utf-8"
         response = requests.post(self._url, data=_json_dumps(payload), *self._req_args, **self._req_kwargs)
         response.raise_for_status()
-        if response.status_code == 200:
-            resp_json = response.json()
-            error = resp_json.get("error")
-            if error:
-                raise JsonRpcError(error.get("message"), error)
-            return DictAdapter.create(resp_json.get("result"))
-        else:
+        if response.status_code != 200:
             return None
+        resp_json = response.json()
+        error = resp_json.get("error")
+        if error:
+            raise JsonRpcError(error.get("message"), error)
+        return DictAdapter.create(resp_json.get("result"))
+
 
     def _curl(self, payload):
         headers = self._req_kwargs.get("headers", {})
@@ -108,7 +108,7 @@ class JsonRpcBatchMethod:
 
 
 def _param(*args, **kwargs):
-    return args and args or kwargs
+    return args if args else kwargs
 
 
 def _json_request(method, params=None, id=None):
@@ -120,7 +120,7 @@ def _json_request(method, params=None, id=None):
     }
 
 def _json_dumps(obj):
-    if type(obj) == DictAdapter:
+    if isinstance(obj, DictAdapter):
         return _json_dumps(obj.obj)
     return json.dumps(obj)
 
@@ -130,10 +130,11 @@ class DictAdapter:
 
     @staticmethod
     def create(obj):
-        if type(obj) in [dict, list]:
-            return DictAdapter(obj)
-        else:
+        if isinstance(obj, DictAdapter):
             return obj
+        if isinstance(obj, (dict, list)):
+            return DictAdapter(obj)
+        return obj
 
     def __getitem__(self, attr):
         return DictAdapter.create(self.obj[attr])

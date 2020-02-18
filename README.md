@@ -2,6 +2,8 @@
 
 ![Logo](doc/images/voorhees-logo.gif)
 
+[![CodeFactor](https://www.codefactor.io/repository/github/dmitry-at-hyla/voorhees/badge)](https://www.codefactor.io/repository/github/dmitry-at-hyla/voorhees)
+
 Voorhees is a simple library helping to build JSON RPC 2.0 over HTTP
 services in Spring applications in a quite fast and seamless way.
 

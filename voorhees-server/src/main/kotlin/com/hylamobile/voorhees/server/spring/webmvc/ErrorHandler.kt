@@ -5,7 +5,7 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class ErrorHandler(
-    private val statusCode: Int, 
+    private val statusCode: Int,
     private val body: String? = null) : HttpRequestHandler {
 
     override fun handleRequest(request: HttpServletRequest, response: HttpServletResponse) {
