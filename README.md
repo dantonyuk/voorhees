@@ -108,6 +108,15 @@ public class MyService {
 
 The method name in this case will be "mine.getMe" not "getMe".
 
+To expose some method with a different name one can use `@JsonRpcMethod`:
+
+```java
+    @JsonRpcMethod(name = "persons.me")
+    public Person getMe() {
+        return ME;
+    }
+```
+
 ### Named Parameters
 
 Since JSON RPC supports named parameters for RPC method, Voorhees uses
