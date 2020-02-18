@@ -3,6 +3,7 @@ package com.hylamobile.voorhees.client
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.NullNode
 import com.fasterxml.jackson.databind.node.TextNode
+import com.hylamobile.voorhees.client.annotation.JsonRpcMethod
 import com.hylamobile.voorhees.client.annotation.JsonRpcService
 import com.hylamobile.voorhees.client.annotation.Param
 import com.hylamobile.voorhees.jsonrpc.*
@@ -44,6 +45,9 @@ class WebServiceTest {
         interface PrefixedRemoteService {
 
             fun ping(): String
+
+            @JsonRpcMethod("test.hops")
+            fun hops(): Int
         }
     }
 
@@ -265,6 +269,21 @@ class WebServiceTest {
         val testService = client.getService(PrefixedRemoteService::class.java)
         val result = testService.ping()
         assertEquals("pong", result)
+    }
+
+    @Test
+    fun `call of renamed method  work`() {
+        mockServer.`when`(request()
+            .withMethod("POST")
+            .withPath("/prefix-test")
+            .withBody("{\"method\":\"test.hops\",\"params\":null,\"id\":1,\"jsonrpc\":\"2.0\"}"))
+            .respond(response()
+                .withStatusCode(200)
+                .withBody("{\"result\":7,\"error\":null,\"id\":1,\"jsonrpc\":\"2.0\"}"))
+
+        val testService = client.getService(PrefixedRemoteService::class.java)
+        val result = testService.hops()
+        assertEquals(7, result)
     }
 
     class UserException(data: List<Int>) : JsonRpcException(Error(CODE, "User exception", data)) {

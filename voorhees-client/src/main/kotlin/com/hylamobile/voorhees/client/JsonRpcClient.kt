@@ -1,5 +1,6 @@
 package com.hylamobile.voorhees.client
 
+import com.hylamobile.voorhees.client.annotation.JsonRpcMethod
 import com.hylamobile.voorhees.client.annotation.JsonRpcService
 import com.hylamobile.voorhees.client.annotation.Param
 import com.hylamobile.voorhees.jsonrpc.*
@@ -71,8 +72,11 @@ open class JsonRpcClient(private val transportGroup: TransportGroup) {
 
             fun onlyNamedParameters() = method.parameters.all { it.paramAnno() != null }
 
-            val methodName = when (prefix) {
-                "" -> method.name
+            val methodAnno = method.getAnnotation(JsonRpcMethod::class.java)
+            val remoteMethodName = methodAnno?.name ?: ""
+            val methodName = when {
+                remoteMethodName != "" -> remoteMethodName
+                prefix == "" -> method.name
                 else -> "$prefix.${method.name}"
             }
 
